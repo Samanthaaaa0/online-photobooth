@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import "./App.css";
 import ToggleSwitch from "./components/ToggleSwitch.tsx";
+import cameraFrame from "./assets/cameraframe2.png";
+import "./Popup.css"
 
 function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -9,7 +11,6 @@ function App() {
   const isFrontCamera = true;
 
   const toggleCamera = async () => {
-    // Turn camera ON
     if (!cameraStarted) {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -24,10 +25,7 @@ function App() {
       } catch (error) {
         console.error("Could not access camera:", error);
       }
-    }
-
-    // Turn camera OFF
-    else {
+    } else {
       const stream = videoRef.current?.srcObject as MediaStream | null;
 
       if (stream) {
@@ -48,24 +46,84 @@ function App() {
 
       <p>Check yourself before taking pictures</p>
 
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        width="500"
-        height="500"
-        style={{
-          transform: isFrontCamera ? "scaleX(-1)" : "scaleX(1)",
-        }}
-      />
+      <div className="booth-layout">
+        {/* camera set up */}
+        <div className="camera-frame">
 
-      <br />
+        {/* LIVE CAMERA */}
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          className="camera-video"
+          style={{
+            display: cameraStarted ? "block" : "none",
+            transform: isFrontCamera ? "scaleX(-1)" : "scaleX(1)",
+          }}
+        />
 
-      <ToggleSwitch
-        checked={cameraStarted}
-        onChange={toggleCamera}
-      />
+        {/* CAMERA OFF */}
+        {!cameraStarted && (
+          <div className="camera-off">
+            <div className="camera-icon">📷</div>
+            <div className="camera-hint">
+              Turn on the camera ♡
+            </div>
+          </div>
+        )}
+
+        {/* Y2K FRAME */}
+        <img
+          src={cameraFrame}
+          className="camera-frame-overlay"
+          alt=""
+        />
+
+      </div>
       
+      {/* Controls */}
+      <div className="booth-controls">
+
+        {/* Camera toggle */}
+        <div className="control-card">
+
+          <div className="control-title">
+            📷 CAMERA
+          </div>
+
+          <div className="control-description">
+            Turn your camera on or off
+          </div>
+
+          <ToggleSwitch
+            checked={cameraStarted}
+            onChange={toggleCamera}
+          />
+
+        </div>
+
+
+        {/* Start photobooth */}
+        <div className="control-card">
+
+          <div className="control-title">
+            ✦ PHOTOBOOTH
+          </div>
+
+          <div className="control-description">
+            Ready to take pictures?
+          </div>
+
+          <button className="start-button">
+            GET STARTED ♡
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
     </div>
   );
 }
