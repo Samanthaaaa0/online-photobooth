@@ -26,7 +26,7 @@ const Slider = styled.span`
   inset: 0;
   cursor: pointer;
 
-  background-color: #ccc;
+  background-color: #B1B1B1;
   border-radius: 34px;
 
   transition: 0.3s;

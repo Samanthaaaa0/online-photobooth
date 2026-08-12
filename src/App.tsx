@@ -41,91 +41,97 @@ function App() {
   };
 
   return (
-    <div>
-      <h1>photobooth</h1>
+      <div className="photobooth-page">
 
-      <p>Check yourself before taking pictures</p>
+        <h1>photobooth</h1>
+        <p>Check yourself before taking pictures</p>
 
-      <div className="booth-layout">
-        {/* camera set up */}
-        <div className="camera-frame">
+        <div className="booth-layout">
 
-        {/* LIVE CAMERA */}
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          className="camera-video"
-          style={{
-            display: cameraStarted ? "block" : "none",
-            transform: isFrontCamera ? "scaleX(-1)" : "scaleX(1)",
-          }}
-        />
+          {/* MACHINE HEADER */}
+          <div className="booth-header">
+            <span>✦ PHOTOBOOTH.EXE</span>
+            <span>v1.0</span>
+          </div>
 
-        {/* CAMERA OFF */}
-        {!cameraStarted && (
-          <div className="camera-off">
-            <div className="camera-icon">📷</div>
-            <div className="camera-hint">
-              Turn on the camera ♡
+          {/* CAMERA */}
+          <div className="camera-frame">
+
+            {/* LIVE CAMERA */}
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              className="camera-video"
+              style={{
+                display: cameraStarted ? "block" : "none",
+                transform: isFrontCamera ? "scaleX(-1)" : "scaleX(1)",
+              }}
+            />
+
+            {/* CAMERA OFF */}
+            {!cameraStarted && (
+              <div className="camera-off">
+                <div className="camera-icon">📸</div>
+
+                <div className="camera-hint">
+                  Turn on the camera
+                </div>
+              </div>
+            )}
+
+            {/* Y2K FRAME */}
+            <img
+              src={cameraFrame}
+              className="camera-frame-overlay"
+              alt=""
+            />
+
+          </div>
+
+          {/* CONTROLS */}
+          <div className="booth-controls">
+
+            {/* CAMERA STATUS */}
+            <div className="camera-control">
+              <div className="control-label">
+                Turn on the camera
+              </div>
+
+              <ToggleSwitch
+                checked={cameraStarted}
+                onChange={toggleCamera}
+              />
             </div>
-          </div>
-        )}
 
-        {/* Y2K FRAME */}
-        <img
-          src={cameraFrame}
-          className="camera-frame-overlay"
-          alt=""
-        />
+            {/* START */}
+            <button className="start-button">
+              ✦ START ✦
+            </button>
 
-      </div>
-      
-      {/* Controls */}
-      <div className="booth-controls">
-
-        {/* Camera toggle */}
-        <div className="control-card">
-
-          <div className="control-title">
-            📷 CAMERA
           </div>
 
-          <div className="control-description">
-            Turn your camera on or off
+          {/* STATUS BAR */}
+          <div className="booth-status">
+
+            <span className={cameraStarted ? "status-live" : "status-off"}>
+              {cameraStarted ? "● LIVE" : "○ STANDBY"}
+            </span>
+
+            <span>
+              DIGITAL CAM 2000
+            </span>
+
+            <span>
+              128 MB
+            </span>
+
           </div>
-
-          <ToggleSwitch
-            checked={cameraStarted}
-            onChange={toggleCamera}
-          />
-
-        </div>
-
-
-        {/* Start photobooth */}
-        <div className="control-card">
-
-          <div className="control-title">
-            ✦ PHOTOBOOTH
-          </div>
-
-          <div className="control-description">
-            Ready to take pictures?
-          </div>
-
-          <button className="start-button">
-            GET STARTED ♡
-          </button>
 
         </div>
 
       </div>
-
-    </div>
-
-    </div>
-  );
+    );
 }
 
 export default App;
