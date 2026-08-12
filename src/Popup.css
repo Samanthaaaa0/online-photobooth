@@ -1,0 +1,82 @@
+/* Core structure overrides for native dialog element */
+.popup-modal {
+  border: none;
+  border-radius: 8px;
+  padding: 0;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 90%;
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Styles browser dark backdrop behind the active dialog modal */
+.popup-modal::backdrop {
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+}
+
+.popup-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.popup-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.btn-close-icon {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #666;
+}
+
+.btn-close-icon:hover {
+  color: #000;
+}
+
+/* Trigger Button Styles */
+.btn-trigger {
+  background-color: #0070f3;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.btn-action {
+  background-color: #333;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 16px;
+}
+
+/* Animation entry macro */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
