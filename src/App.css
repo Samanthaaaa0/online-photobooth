@@ -348,7 +348,7 @@ body {
   height: auto;
   display: block;
 
-  cursor: pointer;
+  pointer-events: none;
 }
 
 .start-button:hover {

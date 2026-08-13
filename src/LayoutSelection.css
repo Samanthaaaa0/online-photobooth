@@ -1,0 +1,316 @@
+.layout-selection {
+  min-height: 100vh;
+
+  padding: 50px 30px;
+
+  box-sizing: border-box;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-family: Arial, sans-serif;
+}
+
+.layout-window {
+  position: relative;
+
+  width: min(1050px, 95vw);
+  min-height: 650px;
+
+  box-sizing: border-box;
+
+  background:
+    linear-gradient(
+      145deg,
+      #eeeeee,
+      #bdbdbd 35%,
+      #dedede 55%,
+      #9d9d9d
+    );
+
+  border: 3px solid white;
+  border-radius: 20px;
+
+  box-shadow:
+    0 0 0 2px #555,
+    8px 10px 0 #333,
+    15px 20px 35px rgba(0, 0, 0, 0.45);
+
+  overflow: hidden;
+}
+
+.layout-window::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  background-image:
+    radial-gradient(
+      #555 1.5px,
+      transparent 1.5px
+    );
+
+  background-size: 14px 14px;
+
+  opacity: 0.12;
+
+  pointer-events: none;
+}
+
+.layout-window-header {
+  position: relative;
+
+  z-index: 2;
+
+  height: 42px;
+
+  padding: 0 16px;
+
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background:
+    linear-gradient(
+      180deg,
+      #eeeeee,
+      #a8a8a8
+    );
+
+  border-bottom: 2px solid #666;
+
+  font-family: monospace;
+
+  font-size: 12px;
+  font-weight: bold;
+
+  letter-spacing: 2px;
+
+  color: #222;
+}
+
+.window-buttons {
+  display: flex;
+
+  gap: 5px;
+}
+
+.window-buttons span {
+  width: 22px;
+  height: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #d6d6d6;
+
+  border: 1px solid #666;
+
+  box-shadow:
+    inset 1px 1px white;
+
+  font-size: 12px;
+}
+
+.layout-content {
+  position: relative;
+
+  z-index: 2;
+
+  padding: 45px 40px 70px;
+
+  text-align: center;
+}
+
+.layout-content h1 {
+  margin: 0;
+
+  font-size: 34px;
+
+  font-weight: 900;
+
+  letter-spacing: 3px;
+
+  color: #222;
+
+  text-shadow:
+    2px 2px white,
+    4px 4px #999;
+}
+
+.layout-subtitle {
+  margin: 8px 0 40px;
+
+  font-family: monospace;
+
+  font-size: 11px;
+
+  letter-spacing: 2px;
+
+  color: #555;
+}
+
+.layout-options {
+  display: flex;
+
+  justify-content: center;
+
+  align-items: stretch;
+
+  gap: 25px;
+
+  max-width: 900px;
+
+  margin: 0 auto;
+}
+
+.layout-card {
+  position: relative;
+
+  width: 240px;
+
+  padding: 18px;
+
+  box-sizing: border-box;
+
+  border: 2px solid #555;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f5f5f5,
+      #c5c5c5
+    );
+
+  box-shadow:
+    4px 5px 0 #555,
+    inset 2px 2px white;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.layout-card:hover {
+  transform: translate(-3px, -5px);
+
+  box-shadow:
+    7px 9px 0 #333,
+    inset 2px 2px white;
+}
+
+.layout-card:active {
+  transform: translate(2px, 3px);
+
+  box-shadow:
+    1px 2px 0 #333;
+}
+
+/* image */
+
+.layout-image {
+  height: 280px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px;
+
+  box-sizing: border-box;
+
+  background: #f5f5f5;
+
+  border: 2px solid #555;
+
+  overflow: hidden;
+}
+
+.layout-image img {
+  max-width: 100%;
+  max-height: 100%;
+
+  object-fit: contain;
+
+  display: block;
+}
+
+
+/* card text */
+
+.layout-card-info h2 {
+  margin: 15px 0 4px;
+
+  font-size: 17px;
+
+  letter-spacing: 2px;
+
+  color: #222;
+}
+
+.layout-card-info p {
+  margin: 0;
+
+  font-family: monospace;
+
+  font-size: 10px;
+
+  color: #666;
+}
+
+/* button */
+
+.select-button {
+  margin-top: 15px;
+
+  padding: 8px;
+
+  background: #222;
+
+  color: white;
+
+  border: 2px solid #555;
+
+  font-family: monospace;
+
+  font-size: 10px;
+
+  letter-spacing: 2px;
+}
+
+/* status bar */
+
+.layout-status {
+  position: absolute;
+
+  left: 20px;
+  right: 20px;
+  bottom: 15px;
+
+  z-index: 3;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  padding-top: 8px;
+
+  border-top: 2px solid rgba(80, 80, 80, 0.35);
+
+  font-family: monospace;
+
+  font-size: 9px;
+
+  letter-spacing: 1px;
+
+  color: #444;
+}
