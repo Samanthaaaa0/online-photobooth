@@ -4,7 +4,11 @@ import layout6 from "../assets/layout6.png";
 
 import "../LayoutSelection.css";
 
-function LayoutSelection() {
+function LayoutSelection({
+    onSelectLayout
+  }: {
+    onSelectLayout: () => void;
+  }) {
   const layouts = [
     {
       id: "4-cuts",
@@ -59,7 +63,8 @@ function LayoutSelection() {
 
             {layouts.map((layout) => (
 
-              <button
+              <button 
+                onClick={onSelectLayout}
                 key={layout.id}
                 className="layout-card"
               >

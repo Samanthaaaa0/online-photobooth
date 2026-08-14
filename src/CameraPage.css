@@ -1,0 +1,397 @@
+
+.camera-video {
+  position: absolute;
+
+  /*
+    These percentages correspond to:
+
+    left: 59 / 677
+    top: 175 / 445
+    width: 281 / 677
+    height: 211 / 445
+  */
+
+  left: 8.8%;
+  top: 39.5%;
+
+  width: 41.7%;
+  height: 47.6%;
+
+  object-fit: cover;
+
+  z-index: 1;
+}
+
+.camera-frame-overlay {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: fill;
+
+  z-index: 2;
+
+  pointer-events: none;
+}
+
+.camera-settings {
+  align-self: center;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 45px;
+
+  padding: 20px;
+}
+
+.settings-label {
+  margin-bottom: 12px;
+
+  font-family: monospace;
+
+  font-size: 11px;
+
+  font-weight: bold;
+
+  letter-spacing: 2px;
+
+  color: #ddd;
+
+  text-shadow:
+    1px 1px #000;
+}
+
+.photo-history {
+  width: 200px;
+
+  height: 560px;
+
+  justify-self: end;
+
+  display: flex;
+
+  flex-direction: column;
+
+  background:
+    linear-gradient(
+      145deg,
+      #333,
+      #161616
+    );
+
+  border: 3px solid #666;
+
+  box-shadow:
+    inset 2px 2px rgba(255,255,255,0.15),
+    5px 6px #050505;
+
+  overflow: hidden;
+}
+
+.history-title {
+  padding: 12px;
+
+  background: linear-gradient(
+    #444,
+    #222
+  );
+
+  border-bottom: 2px solid #777;
+
+  font-family: monospace;
+
+  font-size: 10px;
+
+  font-weight: bold;
+
+  letter-spacing: 2px;
+
+  text-align: center;
+}
+
+.empty-photo {
+  background:
+    repeating-linear-gradient(
+      45deg,
+      #222,
+      #222 5px,
+      #292929 5px,
+      #292929 10px
+    );
+
+  border: 1px dashed #666;
+}
+
+.empty-slot {
+  position: absolute;
+
+  inset: 0;
+
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  font-family: monospace;
+
+  font-size: 20px;
+
+  color: #555;
+}
+
+.photo-count {
+  padding: 10px;
+
+  border-top: 1px solid #555;
+
+  font-family: monospace;
+
+  font-size: 10px;
+
+  text-align: center;
+
+  color: #aaa;
+}
+
+.photo-list {
+  flex: 1;
+
+  padding: 10px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 10px;
+
+  overflow-y: auto;
+}
+
+/* PHOTO THUMBNAIl  */
+
+.photo-thumbnail {
+  position: relative;
+
+  width: 100%;
+
+  aspect-ratio: 4 / 3;
+
+  flex-shrink: 0;
+
+  background: #222;
+
+  border: 1px solid #777;
+
+  overflow: hidden;
+}
+
+.photo-thumbnail img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.photo-thumbnail span {
+  position: absolute;
+
+  top: 4px;
+  left: 5px;
+
+  font-family: monospace;
+
+  font-size: 9px;
+
+  color: white;
+
+  background: rgba(0,0,0,0.6);
+
+  padding: 2px 4px;
+}
+
+/* TIMER  */
+
+.timer-options {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.timer-options button {
+  width: 80px;
+
+  padding: 9px 12px;
+
+  background:
+    linear-gradient(
+      #dcdcdc,
+      #888
+    );
+
+  color: #222;
+
+  border: 2px solid #555;
+
+  box-shadow:
+    inset 1px 1px white,
+    2px 2px #000;
+
+  font-family: monospace;
+
+  font-weight: bold;
+
+  cursor: pointer;
+}
+
+.timer-options button:hover {
+  transform: translateX(3px);
+}
+
+.timer-options button.selected {
+  background: #222;
+
+  color: white;
+
+  border-color: #aaa;
+
+  box-shadow:
+    inset 2px 2px #555;
+}
+
+/* VIBE  */
+
+.vibe-options {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 12px;
+}
+
+.vibe {
+  width: 32px;
+  height: 32px;
+
+  padding: 0;
+
+  border-radius: 50%;
+
+  border: 3px solid #666;
+
+  cursor: pointer;
+
+  box-shadow:
+    inset 2px 2px rgba(255,255,255,0.8),
+    2px 2px #111;
+
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.vibe:hover {
+  transform: scale(1.12);
+}
+
+/* START BUTTON  */
+
+.camera-start-button {
+  margin-top: 25px;
+
+  padding: 0;
+
+  background: none;
+
+  border: none;
+
+  cursor: pointer;
+
+  transition: transform 0.12s ease;
+}
+
+.camera-start-button img {
+  width: 180px;
+
+  display: block;
+}
+
+.camera-start-button:hover {
+  transform: translateY(-3px);
+}
+
+.camera-start-button:active {
+  transform: translateY(2px);
+}
+
+/* CAMERA PAGE, VIBE  */
+
+.camera-page {
+  position: relative;
+
+  width: 100%;
+  min-height: 100vh;
+
+  box-sizing: border-box;
+
+  display: grid;
+
+  grid-template-columns: 180px minmax(0, 1fr) 220px;
+
+  align-items: center;
+
+  gap: 35px;
+
+  padding: 40px 35px;
+
+  overflow: hidden;
+
+  background-color: #171717;
+
+  background-image:
+    radial-gradient(
+      rgba(255, 255, 255, 0.13) 1.5px,
+      transparent 1.5px
+    );
+
+  background-size: 14px 14px;
+
+  transition: background-color 0.3s ease;
+
+  color: white;
+}
+
+.camera-page.vibe-pink {
+  background-color: #ff1493;
+}
+
+.camera-page.vibe-blue {
+  background-color: #3399ff;
+}
+
+.camera-page.vibe-white {
+  background-color: #eeeeee;
+}
+
+.camera-page.vibe-black {
+  background-color: #111111;
+}
+
+.camera-center {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-width: 0;
+}
+

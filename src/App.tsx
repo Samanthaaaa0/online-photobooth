@@ -2,13 +2,14 @@ import { useState } from "react";
 
 import CameraSetup from "./pages/CameraSetup";
 import LayoutSelection from "./pages/LayoutSelection";
+import CameraPage from "./pages/CameraPage"
 
 function App() {
-  const [page, setPage] = useState<"camera" | "layout">("camera");
+  const [page, setPage] = useState<"intro" | "layout" | "camera">("intro");
 
   return (
     <>
-      {page === "camera" && (
+      {page === "intro" && (
         <CameraSetup
           onStart={() => {
             console.log("START BUTTON CLICKED");
@@ -18,7 +19,13 @@ function App() {
       )}
 
       {page === "layout" && (
-        <LayoutSelection />
+        <LayoutSelection
+          onSelectLayout={() => setPage("camera")}
+        />
+      )}
+
+      {page === "camera" && (
+        <CameraPage />
       )}
     </>
   );
