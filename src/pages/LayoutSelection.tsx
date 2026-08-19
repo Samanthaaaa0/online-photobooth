@@ -1,32 +1,37 @@
 import layout4 from "../assets/layout4.png";
 import layout6 from "../assets/layout6.png";
-// import layoutMeme from "./assets/layoutmeme.png";
+// import layoutMeme from "../assets/layoutmeme.png";
 
 import "../LayoutSelection.css";
 
+type LayoutType = "4-cuts" | "6-cuts" | "meme";
+
+type LayoutSelectionProps = {
+  onSelectLayout: (layout: LayoutType) => void;
+};
+
 function LayoutSelection({
-    onSelectLayout
-  }: {
-    onSelectLayout: () => void;
-  }) {
+  onSelectLayout,
+}: LayoutSelectionProps) {
+
   const layouts = [
     {
-      id: "4-cuts",
+      id: "4-cuts" as LayoutType,
       title: "4 CUTS",
       description: "Classic photobooth",
       image: layout4,
     },
     {
-      id: "6-cuts",
+      id: "6-cuts" as LayoutType,
       title: "6 CUTS",
       description: "Extra poses",
       image: layout6,
     },
     {
-      id: "meme",
+      id: "meme" as LayoutType,
       title: "MEME MODE",
       description: "3 pics · 6 cuts",
-    //   image: layoutMeme,
+      // image: layoutMeme,
     },
   ];
 
@@ -63,17 +68,19 @@ function LayoutSelection({
 
             {layouts.map((layout) => (
 
-              <button 
-                onClick={onSelectLayout}
+              <button
                 key={layout.id}
+                onClick={() => onSelectLayout(layout.id)}
                 className="layout-card"
               >
 
                 <div className="layout-image">
-                  <img
-                    src={layout.image}
-                    alt={layout.title}
-                  />
+                  {layout.image && (
+                    <img
+                      src={layout.image}
+                      alt={layout.title}
+                    />
+                  )}
                 </div>
 
                 <div className="layout-card-info">

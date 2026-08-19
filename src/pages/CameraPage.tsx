@@ -4,9 +4,23 @@ import startbutton from "../assets/startbutton.png";
 
 import "../CameraPage.css";
 
-function CameraPage() {
+type LayoutType =
+  | "4-cuts"
+  | "6-cuts"
+  | "meme";
+
+type CameraPageProps = {
+  layout: LayoutType | null;
+  onComplete: (photos: string[]) => void;
+};
+
+function CameraPage({
+  layout,
+  onComplete,
+}: CameraPageProps) {
   // set up camera
   const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const [cameraStarted, setCameraStarted] = useState(false);
   const isFrontCamera = true;
@@ -48,9 +62,15 @@ function CameraPage() {
         audio: false,
       });
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+      // Camera page may have disappeared while permission was loading
+      if (!videoRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
       }
+
+      streamRef.current = stream;
+
+      videoRef.current.srcObject = stream;
 
       setCameraStarted(true);
 
@@ -60,16 +80,27 @@ function CameraPage() {
     }
   };
 
-
   const stopCamera = () => {
-    const stream = videoRef.current?.srcObject as MediaStream | null;
+    console.log("STOPPING CAMERA");
 
-    if (stream) {
-      stream.getTracks().forEach((track) => {
+    // Stop every track
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => {
         track.stop();
       });
+
+      streamRef.current = null;
     }
+
+    // Disconnect video from camera
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.srcObject = null;
+    }
+
+    setCameraStarted(false);
   };
+
 
   const takePhoto = (): string | null => {
     const video = videoRef.current;
@@ -103,7 +134,8 @@ function CameraPage() {
 
   const runCountdown = async (
     photoIndex?: number
-  ) => {
+  ): Promise<string | null> => {
+
     for (let count = timer; count >= 1; count--) {
       setCountdown(count);
 
@@ -118,11 +150,13 @@ function CameraPage() {
 
     if (photo) {
       setPhotos((prev) => {
+
         if (photoIndex === undefined) {
           return [...prev, photo];
         }
 
         const updated = [...prev];
+
         updated[photoIndex] = photo;
 
         return updated;
@@ -130,29 +164,44 @@ function CameraPage() {
     }
 
     setCountdown(null);
+
+    return photo;
   };
 
   const startPhotoSession = async () => {
     if (isTakingPhotos) return;
 
     setIsTakingPhotos(true);
-
     setPhotos([]);
     setSessionComplete(false);
 
     const numberOfPhotos = 6;
 
+    const newPhotos: string[] = [];
+
     for (let i = 0; i < numberOfPhotos; i++) {
-      await runCountdown();
+
+      const photo = await runCountdown();
+
+      if (photo) {
+        newPhotos.push(photo);
+      }
 
       // Small pause between photos
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1000)
-      );
+      if (i < numberOfPhotos - 1) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, 1000)
+        );
+      }
     }
+
+    setPhotos(newPhotos);
 
     setIsTakingPhotos(false);
     setSessionComplete(true);
+
+    // Send the six photos to App.tsx
+    // onComplete(newPhotos);
   };
 
   const startRetake = async (photoIndex: number) => {
@@ -174,6 +223,11 @@ function CameraPage() {
     }, 180);
   };
 
+  const finishCamera = () => {
+    stopCamera();
+    onComplete(photos);
+  };
+
   return (
     <>
     {flash && (
@@ -191,7 +245,11 @@ function CameraPage() {
       </span>
 
       <span className="rec-status">
-        ● READY
+        {isTakingPhotos
+          ? "● CAPTURING"
+          : sessionComplete
+            ? "● REVIEW"
+            : "● READY"}
       </span>
 
     </div>
@@ -289,9 +347,6 @@ function CameraPage() {
         {/* CAMERA */}
 
         <main className="camera-center">
-
-          
-
           <div className="camera-frame">
 
             {!cameraStarted && (
@@ -333,7 +388,6 @@ function CameraPage() {
 
           </div>
 
-
           <div className="camera-controls">
 
           {selectedPhoto !== null && !isTakingPhotos && (
@@ -341,12 +395,7 @@ function CameraPage() {
               className="retake-selected-button"
               onClick={() => startRetake(selectedPhoto)}
             >
-              <span className="retake-icon">↻</span>
-
-              <span>
-                RETAKE PHOTO{" "}
-                {String(selectedPhoto + 1).padStart(2, "0")}
-              </span>
+              ↻ RETAKE {String(selectedPhoto + 1).padStart(2, "0")}
             </button>
           )}
 
@@ -363,19 +412,16 @@ function CameraPage() {
             </button>
           )}
 
-          {sessionComplete && selectedPhoto === null && (
+          {sessionComplete && !isTakingPhotos && (
             <button
               className="next-button"
-              onClick={() => {
-                console.log("Go to layout selection", photos);
-              }}
+              onClick={finishCamera}
             >
-              NEXT ➜
+              NEXT PHASE →
             </button>
           )}
 
         </div>
-
 
         </main>
 
@@ -385,7 +431,11 @@ function CameraPage() {
         <aside className="photo-history">
 
           <div className="history-title">
-            TAKEN PHOTOS
+            <span>TAKEN PHOTOS </span>
+
+            <span className="history-count">
+              {photos.length.toString().padStart(2, "0")} / 06
+            </span>
           </div>
 
           <div className="photo-list">
@@ -409,11 +459,6 @@ function CameraPage() {
                     }
                   }}
                 >
-                  {selectedPhoto === index && (
-                    <span className="selected-label">
-                      RETAKE
-                    </span>
-                  )}
 
                   {photo ? (
                     <img
@@ -426,10 +471,6 @@ function CameraPage() {
                     </span>
                   )}
 
-                  <span className="photo-number">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-
               </button>
             );
           })}
@@ -439,11 +480,9 @@ function CameraPage() {
           {selectedPhoto !== null && !isTakingPhotos && (
             <button
               className="retake-selected-button"
-              onClick={() => {
-                startRetake(selectedPhoto);
-              }}
+              onClick={() => startRetake(selectedPhoto)}
             >
-              ↻ RETAKE PHOTO{" "}
+              ↻ RETAKE{" "}
               {String(selectedPhoto + 1).padStart(2, "0")}
             </button>
           )}
