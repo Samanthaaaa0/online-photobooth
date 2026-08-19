@@ -5,16 +5,30 @@ import startbutton from "../assets/startbutton.png";
 import "../CameraPage.css";
 
 function CameraPage() {
+  // set up camera
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const [cameraStarted, setCameraStarted] = useState(false);
   const isFrontCamera = true;
 
+  // set up countdown timer
   const [timer, setTimer] = useState(3);
 
+  // set up photos
   const [photos, setPhotos] = useState<string[]>([]);
 
+  // set up background colour
   const [vibe, setVibe] = useState("black");
+
+  // set up picture capturing
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [isTakingPhotos, setIsTakingPhotos] = useState(false);
+
+  const [sessionComplete, setSessionComplete] = useState(false);
+
+  const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
+
+  const [flash, setFlash] = useState(false);
 
 
   // START CAMERA WHEN PAGE LOADS
@@ -57,9 +71,115 @@ function CameraPage() {
     }
   };
 
+  const takePhoto = (): string | null => {
+    const video = videoRef.current;
+
+    if (!video) return null;
+
+    const canvas = document.createElement("canvas");
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const context = canvas.getContext("2d");
+
+    if (!context) return null;
+
+    if (isFrontCamera) {
+      context.translate(canvas.width, 0);
+      context.scale(-1, 1);
+    }
+
+    context.drawImage(
+      video,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    return canvas.toDataURL("image/png");
+  };
+
+  const runCountdown = async (
+    photoIndex?: number
+  ) => {
+    for (let count = timer; count >= 1; count--) {
+      setCountdown(count);
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, 1000)
+      );
+    }
+
+    triggerFlash();
+
+    const photo = takePhoto();
+
+    if (photo) {
+      setPhotos((prev) => {
+        if (photoIndex === undefined) {
+          return [...prev, photo];
+        }
+
+        const updated = [...prev];
+        updated[photoIndex] = photo;
+
+        return updated;
+      });
+    }
+
+    setCountdown(null);
+  };
+
+  const startPhotoSession = async () => {
+    if (isTakingPhotos) return;
+
+    setIsTakingPhotos(true);
+
+    setPhotos([]);
+    setSessionComplete(false);
+
+    const numberOfPhotos = 6;
+
+    for (let i = 0; i < numberOfPhotos; i++) {
+      await runCountdown();
+
+      // Small pause between photos
+      await new Promise((resolve) =>
+        setTimeout(resolve, 1000)
+      );
+    }
+
+    setIsTakingPhotos(false);
+    setSessionComplete(true);
+  };
+
+  const startRetake = async (photoIndex: number) => {
+    if (isTakingPhotos) return;
+
+    setIsTakingPhotos(true);
+    setSelectedPhoto(null);
+
+    await runCountdown(photoIndex);
+
+    setIsTakingPhotos(false);
+  };
+
+  const triggerFlash = () => {
+    setFlash(true);
+
+    setTimeout(() => {
+      setFlash(false);
+    }, 180);
+  };
 
   return (
     <>
+    {flash && (
+      <div className="camera-flash" />
+    )}
+
     <div className="camera-topbar">
 
       <span>
@@ -95,6 +215,8 @@ function CameraPage() {
                   key={seconds}
                   className={timer === seconds ? "selected" : ""}
                   onClick={() => setTimer(seconds)}
+                  disabled={isTakingPhotos}
+                  
                 >
                   {seconds}s
                 </button>
@@ -114,20 +236,48 @@ function CameraPage() {
             <div className="vibe-options">
 
               <button
-                className={`vibe pink ${vibe === "pink" ? "selected" : ""}`}
-                onClick={() => setVibe("pink")} />
+                className={`vibe-swatch pink ${
+                  vibe === "pink" ? "selected" : ""
+                }`}
+                onClick={() => setVibe("pink")}
+                aria-label="Pink vibe"
+              >
+                <span className="vibe-dot" />
+                <span className="vibe-name">PINK</span>
+              </button>
 
               <button
-                className={`vibe blue ${vibe === "blue" ? "selected" : ""}`}
-                onClick={() => setVibe("blue")} />
+                className={`vibe-swatch blue ${
+                  vibe === "blue" ? "selected" : ""
+                }`}
+                onClick={() => setVibe("blue")}
+                aria-label="Blue vibe"
+              >
+                <span className="vibe-dot" />
+                <span className="vibe-name">BLUE</span>
+              </button>
 
               <button
-                className={`vibe white ${vibe === "white" ? "selected" : ""}`}
-                onClick={() => setVibe("white")} />
+                className={`vibe-swatch white ${
+                  vibe === "white" ? "selected" : ""
+                }`}
+                onClick={() => setVibe("white")}
+                aria-label="White vibe"
+              >
+                <span className="vibe-dot" />
+                <span className="vibe-name">WHITE</span>
+              </button>
 
               <button
-                className={`vibe black ${vibe === "black" ? "selected" : ""}`}
-                onClick={() => setVibe("black")} />
+                className={`vibe-swatch black ${
+                  vibe === "black" ? "selected" : ""
+                }`}
+                onClick={() => setVibe("black")}
+                aria-label="Black vibe"
+              >
+                <span className="vibe-dot" />
+                <span className="vibe-name">BLACK</span>
+              </button>
 
             </div>
 
@@ -139,6 +289,8 @@ function CameraPage() {
         {/* CAMERA */}
 
         <main className="camera-center">
+
+          
 
           <div className="camera-frame">
 
@@ -153,7 +305,7 @@ function CameraPage() {
               autoPlay
               playsInline
               muted
-              className="camera-video" 
+              className="camera-video1" 
               style={{
                     display: cameraStarted
                     ? "block"
@@ -165,22 +317,65 @@ function CameraPage() {
                 }}
               />
 
+
+            {countdown !== null && (
+              <div className="countdown-wrapper">
+                <div className="countdown-display">
+                  {countdown}
+                </div>
+              </div>
+            )}
+
             <img
               src={cameraFrame}
-              className="camera-frame-overlay"
+              className="camera-frame-overlay1"
               alt="" />
 
           </div>
 
 
-          <button
-            className="camera-start-button"
-            disabled={!cameraStarted}
-          >
-            <img
-              src={startbutton}
-              alt="Start" />
-          </button>
+          <div className="camera-controls">
+
+          {selectedPhoto !== null && !isTakingPhotos && (
+            <button
+              className="retake-selected-button"
+              onClick={() => startRetake(selectedPhoto)}
+            >
+              <span className="retake-icon">↻</span>
+
+              <span>
+                RETAKE PHOTO{" "}
+                {String(selectedPhoto + 1).padStart(2, "0")}
+              </span>
+            </button>
+          )}
+
+          {!sessionComplete && selectedPhoto === null && (
+            <button
+              className="camera-start-button"
+              disabled={!cameraStarted || isTakingPhotos}
+              onClick={startPhotoSession}
+            >
+              <img
+                src={startbutton}
+                alt="Start"
+              />
+            </button>
+          )}
+
+          {sessionComplete && selectedPhoto === null && (
+            <button
+              className="next-button"
+              onClick={() => {
+                console.log("Go to layout selection", photos);
+              }}
+            >
+              NEXT ➜
+            </button>
+          )}
+
+        </div>
+
 
         </main>
 
@@ -200,12 +395,25 @@ function CameraPage() {
               const photo = photos[index];
 
               return (
-                <div
+                
+                <button
                   className={`photo-thumbnail ${
                     photo ? "has-photo" : "empty-photo"
+                  } ${
+                    selectedPhoto === index ? "selected-photo" : ""
                   }`}
                   key={index}
+                  onClick={() => {
+                    if (photo && !isTakingPhotos) {
+                      setSelectedPhoto(index);
+                    }
+                  }}
                 >
+                  {selectedPhoto === index && (
+                    <span className="selected-label">
+                      RETAKE
+                    </span>
+                  )}
 
                   {photo ? (
                     <img
@@ -222,11 +430,23 @@ function CameraPage() {
                     {String(index + 1).padStart(2, "0")}
                   </span>
 
-              </div>
+              </button>
             );
           })}
 
           </div>
+
+          {selectedPhoto !== null && !isTakingPhotos && (
+            <button
+              className="retake-selected-button"
+              onClick={() => {
+                startRetake(selectedPhoto);
+              }}
+            >
+              ↻ RETAKE PHOTO{" "}
+              {String(selectedPhoto + 1).padStart(2, "0")}
+            </button>
+          )}
 
           <div className="photo-count">
             {photos.length} / 6
