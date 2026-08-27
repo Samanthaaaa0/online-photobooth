@@ -268,7 +268,7 @@ function CameraPage({
 
             <div className="timer-options">
 
-              {[3, 5, 10].map((seconds) => (
+              {[1, 5, 10].map((seconds) => (
                 <button
                   key={seconds}
                   className={timer === seconds ? "selected" : ""}
