@@ -678,13 +678,13 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  gap: 18px;
+  gap: 24px;
 }
 
 .frame-carousel-window {
   overflow: hidden;
   width: 100%;
-  max-width: 900px;
+  max-width: 1000px;
   display: flex;
   justify-content: center;
 }
@@ -693,9 +693,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 100px;
-  transform: translateX(0);
-  will-change: transform;
+  gap: clamp(35px, 5vw, 80px);
+  width: 100%;
 }
 
 .frame-current {
@@ -705,21 +704,32 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  z-index: 2;
 }
 
 .frame-neighbour {
-  width: 70px;
-  height: 190px;
-  opacity: 0.5;
+  width: clamp(100px, 10vw, 140px);
+  height: auto;
+  aspect-ratio: 280 / 650;
+
+  opacity: 0.45;
+
   padding: 0;
   margin: 0;
+
   border: none;
   outline: none;
   background: transparent;
+
   overflow: visible;
   flex-shrink: 0;
-  cursor: default;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+
+  cursor: pointer;
+
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease,
+    filter 0.3s ease;
 }
 
 .frame-neighbour img {
@@ -727,14 +737,25 @@
   height: 100%;
   object-fit: contain;
   display: block;
-  filter: grayscale(0.15);
+
+  filter:
+    grayscale(0.2)
+    brightness(0.85);
 }
 
-/* offsets come straight from the TSX className
-   (offset--1 / offset-1) instead of the old
-   fragile nth-of-type hack */
-.frame-neighbour.offset--1 { margin-right: 6px; }
-.frame-neighbour.offset-1  { margin-left: 6px; }
+.frame-neighbour.offset--1 {
+  transform: rotate(-3deg) translateY(8px);
+}
+
+.frame-neighbour.offset-1 {
+  transform: rotate(3deg) translateY(8px);
+}
+
+.frame-neighbour:hover {
+  opacity: 0.7;
+  transform: translateY(0) scale(1.04);
+  filter: brightness(1.05);
+}
 
 .frame-arrow {
   width: 38px;

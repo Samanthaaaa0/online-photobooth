@@ -332,17 +332,6 @@ function Editor({
 
                 </div>
 
-
-                {/* FRAME NAME
-                <div className="current-frame-name">
-                    ✦ {currentFrame.name} ✦
-                </div>
-
-                <div className="frame-counter">
-                    FRAME {String(frameIndex + 1).padStart(2, "0")} /{" "}
-                    {String(frames.length).padStart(2, "0")}
-                </div> */}
-
             </section>
 
             {/* ========== RIGHT PANEL ========== */}
@@ -427,9 +416,10 @@ function Editor({
             className="editor-next-button"
             onClick={() => {
                 console.log("Continue to final:", photos);
+                
             }}
             >
-            PRINT / SAVE ▶
+            DECORATE ▶
             </button>
 
         </footer>
