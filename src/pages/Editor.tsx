@@ -91,8 +91,8 @@ function Editor({
         updatePhotos();
         }, [photos, filter]);
 
-    // animation
-    const visibleFrames = [-2, -1, 0, 1, 2].map((offset) => {
+    // visible frames for carousel: previous, current, next
+    const visibleFrames = [-1, 0, 1].map((offset) => {
         const index =
             (frameIndex + offset + frames.length) % frames.length;
 
@@ -222,8 +222,6 @@ function Editor({
 
             <section className="editor-preview-area">
 
-                <div className="preview-label">PREVIEW WINDOW</div>
-
                 <div className="frame-carousel-wrapper">
 
                     <button
@@ -293,9 +291,7 @@ function Editor({
                                                         PHOTOBOOTH 2000
                                                     </div>
 
-                                                    <div className="print-stars">
-                                                        ✦ ♡ ✦
-                                                    </div>
+                                                    
 
                                                 </div>
 
@@ -337,7 +333,7 @@ function Editor({
                 </div>
 
 
-                {/* FRAME NAME */}
+                {/* FRAME NAME
                 <div className="current-frame-name">
                     ✦ {currentFrame.name} ✦
                 </div>
@@ -345,7 +341,7 @@ function Editor({
                 <div className="frame-counter">
                     FRAME {String(frameIndex + 1).padStart(2, "0")} /{" "}
                     {String(frames.length).padStart(2, "0")}
-                </div>
+                </div> */}
 
             </section>
 

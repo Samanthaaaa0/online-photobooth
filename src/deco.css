@@ -1,0 +1,772 @@
+/* =========================================================
+   DECO PAGE
+   ========================================================= */
+
+.deco-page {
+    min-height: 100vh;
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    background:
+        radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+        #17171c;
+
+    background-size: 18px 18px;
+
+    color: white;
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   TOP BAR
+   ========================================================= */
+
+.deco-topbar {
+    height: 70px;
+
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+
+    padding: 0 28px;
+
+    background: rgba(20, 20, 25, 0.95);
+
+    border-bottom: 2px solid #777;
+
+    box-shadow:
+        0 4px 0 rgba(255, 255, 255, 0.05),
+        0 8px 20px rgba(0, 0, 0, 0.35);
+
+    flex-shrink: 0;
+}
+
+
+.deco-brand {
+    font-size: 15px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+
+.deco-title {
+    justify-self: center;
+
+    padding: 9px 22px;
+
+    background: rgba(255, 255, 255, 0.08);
+
+    border: 1px solid #888;
+
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+        4px 4px 0 rgba(0, 0, 0, 0.4);
+
+    font-size: 16px;
+    font-weight: bold;
+
+    letter-spacing: 2px;
+}
+
+
+.deco-status {
+    justify-self: end;
+
+    font-size: 12px;
+    letter-spacing: 1px;
+}
+
+
+.status-light {
+    margin-right: 8px;
+    font-size: 10px;
+
+    color: #baffd0;
+
+    text-shadow:
+        0 0 5px #baffd0;
+}
+
+
+/* =========================================================
+   MAIN WORKSPACE
+   ========================================================= */
+
+.deco-workspace {
+    flex: 1;
+
+    min-height: 0;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(180px, 220px)
+        minmax(420px, 1fr)
+        minmax(180px, 220px);
+
+    gap: 18px;
+
+    padding: 18px 22px;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   SIDE PANELS
+   ========================================================= */
+
+.deco-panel {
+    min-height: 0;
+
+    padding: 18px;
+
+    background: rgba(30, 30, 36, 0.88);
+
+    border: 2px solid #666;
+
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+        5px 5px 0 rgba(0, 0, 0, 0.3);
+
+    overflow-y: auto;
+}
+
+
+.panel-heading {
+    padding-bottom: 14px;
+
+    border-bottom: 1px dashed #666;
+
+    font-size: 13px;
+    font-weight: bold;
+
+    letter-spacing: 2px;
+}
+
+
+/* =========================================================
+   LEFT CONTROLS
+   ========================================================= */
+
+.deco-group {
+    margin-top: 22px;
+}
+
+
+.deco-heading {
+    margin-bottom: 12px;
+
+    font-size: 11px;
+    font-weight: bold;
+
+    letter-spacing: 2px;
+
+    opacity: 0.8;
+}
+
+
+/* =========================================================
+   STICKER GRID
+   ========================================================= */
+
+.sticker-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 8px;
+}
+
+
+.sticker-grid button {
+    aspect-ratio: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #777;
+
+    background: rgba(255, 255, 255, 0.06);
+
+    color: white;
+
+    font-size: 23px;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.12s ease,
+        background 0.12s ease,
+        border-color 0.12s ease;
+}
+
+
+.sticker-grid button:hover {
+    transform: translateY(-2px);
+
+    background: rgba(255, 255, 255, 0.13);
+
+    border-color: white;
+}
+
+
+.sticker-grid button:active {
+    transform: translateY(1px);
+}
+
+
+/* =========================================================
+   ADD TEXT
+   ========================================================= */
+
+.add-text-button {
+    width: 100%;
+
+    padding: 12px 8px;
+
+    border: 1px solid #777;
+
+    background: rgba(255, 255, 255, 0.06);
+
+    color: white;
+
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: bold;
+
+    letter-spacing: 1px;
+
+    cursor: pointer;
+
+    transition: 0.15s ease;
+}
+
+
+.add-text-button:hover {
+    background: rgba(255, 255, 255, 0.13);
+
+    border-color: white;
+}
+
+
+/* =========================================================
+   PREVIEW AREA
+   ========================================================= */
+
+.deco-preview-area {
+    min-width: 0;
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+.preview-label {
+    margin-bottom: 12px;
+
+    font-size: 11px;
+    font-weight: bold;
+
+    letter-spacing: 2px;
+
+    opacity: 0.65;
+}
+
+
+/* =========================================================
+   CANVAS AREA
+   ========================================================= */
+
+.deco-canvas {
+    flex: 1;
+
+    width: 100%;
+    min-height: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background:
+        linear-gradient(
+            45deg,
+            rgba(255, 255, 255, 0.025) 25%,
+            transparent 25%
+        ),
+        linear-gradient(
+            -45deg,
+            rgba(255, 255, 255, 0.025) 25%,
+            transparent 25%
+        );
+
+    border: 1px dashed #555;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   PHOTO PRINT
+   ========================================================= */
+
+.deco-canvas .photo-print {
+    position: relative;
+
+    width: min(300px, 65%);
+
+    height: auto;
+
+    flex-shrink: 0;
+
+    box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.55),
+        0 0 0 1px rgba(255, 255, 255, 0.2);
+
+    background: white;
+
+    overflow: hidden;
+}
+
+
+/* 4 CUTS */
+
+.deco-canvas .print-four {
+    aspect-ratio: 2 / 6;
+}
+
+
+/* 6 CUTS */
+
+.deco-canvas .print-six {
+    aspect-ratio: 4 / 6;
+}
+
+
+/* =========================================================
+   PHOTOS
+   ========================================================= */
+
+.photo-grid {
+    position: relative;
+    z-index: 1;
+
+    width: 100%;
+}
+
+
+.grid-four {
+    display: grid;
+
+    grid-template-columns: 1fr;
+}
+
+
+.grid-six {
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+}
+
+
+.strip-photo {
+    position: relative;
+
+    overflow: hidden;
+}
+
+
+.strip-photo img {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+
+.photo-number {
+    position: absolute;
+
+    bottom: 5px;
+    right: 6px;
+
+    font-size: 8px;
+
+    color: white;
+
+    text-shadow:
+        1px 1px 2px black;
+}
+
+
+/* =========================================================
+   FRAME
+   ========================================================= */
+
+.frame-overlay {
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: fill;
+
+    z-index: 5;
+
+    pointer-events: none;
+}
+
+
+/* =========================================================
+   PRINT DETAILS
+   ========================================================= */
+
+.print-top-decoration,
+.print-bottom {
+    position: relative;
+
+    z-index: 3;
+
+    text-align: center;
+}
+
+
+.print-top-decoration {
+    padding: 6px;
+
+    font-size: 10px;
+}
+
+
+.print-bottom {
+    padding: 8px;
+}
+
+
+.print-date {
+    font-size: 7px;
+    letter-spacing: 1px;
+}
+
+
+.print-stars {
+    margin-top: 3px;
+
+    font-size: 8px;
+}
+
+
+/* =========================================================
+   DECORATIONS
+   ========================================================= */
+
+.decoration {
+    position: absolute;
+
+    z-index: 10;
+
+    transform-origin: center;
+
+    user-select: none;
+
+    cursor: pointer;
+}
+
+
+.decoration-sticker {
+    font-size: 35px;
+
+    line-height: 1;
+
+    filter:
+        drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.25));
+}
+
+
+.decoration-text {
+    font-size: 16px;
+    font-weight: bold;
+
+    white-space: nowrap;
+
+    text-shadow:
+        1px 1px 0 white;
+}
+
+
+.decoration.selected {
+    outline: 1px dashed white;
+
+    outline-offset: 5px;
+}
+
+
+/* =========================================================
+   RIGHT PANEL
+   ========================================================= */
+
+.info-box {
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+
+    margin-top: 18px;
+
+    padding: 12px;
+
+    border: 1px solid #555;
+
+    background: rgba(255, 255, 255, 0.04);
+}
+
+
+.info-box span {
+    font-size: 9px;
+
+    letter-spacing: 1px;
+
+    opacity: 0.55;
+}
+
+
+.info-box strong {
+    font-size: 11px;
+
+    letter-spacing: 1px;
+}
+
+
+.tiny-note {
+    margin-top: 20px;
+
+    font-size: 9px;
+
+    line-height: 1.8;
+
+    letter-spacing: 1px;
+
+    opacity: 0.55;
+}
+
+
+/* =========================================================
+   OBJECT CONTROLS
+   ========================================================= */
+
+.deco-action {
+    width: 100%;
+
+    margin-top: 8px;
+
+    padding: 10px;
+
+    border: 1px solid #666;
+
+    background: rgba(255, 255, 255, 0.05);
+
+    color: white;
+
+    font-family: inherit;
+
+    font-size: 9px;
+    font-weight: bold;
+
+    letter-spacing: 1px;
+
+    cursor: pointer;
+}
+
+
+.deco-action:hover {
+    background: rgba(255, 255, 255, 0.12);
+
+    border-color: white;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.deco-footer {
+    height: 62px;
+
+    display: grid;
+
+    grid-template-columns: 1fr auto 1fr;
+
+    align-items: center;
+
+    padding: 0 22px;
+
+    background: rgba(20, 20, 25, 0.96);
+
+    border-top: 2px solid #666;
+
+    flex-shrink: 0;
+}
+
+
+.deco-footer button {
+    font-family: inherit;
+
+    font-size: 10px;
+    font-weight: bold;
+
+    letter-spacing: 1px;
+
+    cursor: pointer;
+}
+
+
+/* BACK */
+
+.deco-back-button {
+    justify-self: start;
+
+    padding: 10px 16px;
+
+    border: 1px solid #666;
+
+    background: transparent;
+
+    color: white;
+}
+
+
+.deco-back-button:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+
+/* UNDO / REDO / RESET */
+
+.deco-history {
+    display: flex;
+
+    gap: 8px;
+}
+
+
+.deco-history button {
+    padding: 9px 12px;
+
+    border: 1px solid #555;
+
+    background: rgba(255, 255, 255, 0.05);
+
+    color: white;
+}
+
+
+.deco-history button:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+
+/* SAVE */
+
+.deco-save-button {
+    justify-self: end;
+
+    padding: 12px 20px;
+
+    border: 2px solid white;
+
+    background: white;
+
+    color: #17171c;
+
+    box-shadow:
+        4px 4px 0 #555;
+}
+
+
+.deco-save-button:hover {
+    transform: translate(-1px, -1px);
+
+    box-shadow:
+        5px 5px 0 #555;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .deco-workspace {
+        grid-template-columns:
+            160px
+            minmax(300px, 1fr)
+            160px;
+
+        gap: 10px;
+
+        padding: 12px;
+    }
+
+    .deco-panel {
+        padding: 12px;
+    }
+
+    .deco-canvas .photo-print {
+        width: min(260px, 70%);
+    }
+}
+
+
+@media (max-width: 700px) {
+
+    .deco-workspace {
+        grid-template-columns: 1fr;
+
+        overflow-y: auto;
+    }
+
+    .deco-panel {
+        min-height: auto;
+    }
+
+    .deco-preview-area {
+        min-height: 500px;
+    }
+
+    .deco-footer {
+        grid-template-columns: 1fr;
+
+        height: auto;
+
+        gap: 10px;
+
+        padding: 12px;
+    }
+
+    .deco-history {
+        justify-content: center;
+    }
+
+    .deco-save-button,
+    .deco-back-button {
+        justify-self: center;
+    }
+}

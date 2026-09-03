@@ -5,18 +5,26 @@ import LayoutSelection from "./pages/LayoutSelection";
 import CameraPage from "./pages/CameraPage";
 import PhotoSelection from "./pages/PhotoSelection";
 import Editor from "./pages/Editor";
+import Deco from "./pages/Deco";
 
 type Page =
   | "intro"
   | "layout"
   | "camera"
   | "photo-selection"
-  | "editor";
+  | "editor"
+  | "deco";
 
 type LayoutType =
   | "4-cuts"
   | "6-cuts"
   | "meme";
+
+type Frame = {
+    id: string;
+    name: string;
+    image: string;
+};
 
 function App() {
 
@@ -27,6 +35,8 @@ function App() {
   const [photos, setPhotos] = useState<string[]>([]);
 
   const [selectedPhotos, setSelectedPhotos] = useState<string[]>([]);
+
+  const [selectedFrame, setSelectedFrame] = useState<Frame | null>(null);
 
 
   return (
@@ -76,12 +86,28 @@ function App() {
 
       {page === "editor" && (
         <Editor
-          photos={selectedPhotos}
-          layout={layout}
-          onBack={() => {
-            setPage("photo-selection");
-          }}
+            photos={selectedPhotos}
+            layout={layout}
+            onBack={() => {
+                setPage("photo-selection");
+            }}
+            onContinue={(filteredPhotos, frame) => {
+              setSelectedPhotos(filteredPhotos);
+              setSelectedFrame(frame);
+              setPage("deco");
+            }}
         />
+      )}
+
+      {page === "deco" && selectedFrame && (
+          <Deco
+              photos={selectedPhotos}
+              layout={layout}
+              frame={selectedFrame}
+              onBack={() => {
+                  setPage("editor");
+              }}
+          />
       )}
 
     </>

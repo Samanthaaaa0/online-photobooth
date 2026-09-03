@@ -26,7 +26,7 @@ function CameraPage({
   const isFrontCamera = true;
 
   // set up countdown timer
-  const [timer, setTimer] = useState(3);
+  const [timer, setTimer] = useState(0);
 
   // set up photos
   const [photos, setPhotos] = useState<string[]>([]);
