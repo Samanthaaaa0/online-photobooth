@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import * as htmlToImage from 'html-to-image';
 
 import "../Editor.css";
 import type { FilterName } from "../filters/presets";
@@ -17,6 +18,7 @@ type EditorProps = {
   photos: string[];
   layout: LayoutType | null;
   onBack: () => void;
+  onContinue: (image: string) => void;
 };
 
 type Frame = {
@@ -38,20 +40,20 @@ const frames: Frame[] = [
   },
 ];
 
-
-
 function Editor({
   photos,
   layout,
   onBack,
+  onContinue,
 }: EditorProps) {
+
+    const printRef = useRef<HTMLDivElement>(null);
 
     const [filter, setFilter] = useState<FilterName>("normal");
     const [filteredPhotos, setFilteredPhotos] = useState<string[]>(photos);
 
     // frame 
     const [frameIndex, setFrameIndex] = useState(0);
-    const currentFrame = frames[frameIndex];
 
     const nextFrame = () => {
         setFrameIndex((current) => (current + 1) % frames.length);
@@ -102,6 +104,44 @@ function Editor({
         };
     });
 
+    const handleContinue = async () => {
+        if (!printRef.current) {
+            console.error("printRef is NULL!");
+            return;
+        }
+
+        try {
+            // html-to-image generates the final base64 string directly
+            const image = await htmlToImage.toPng(printRef.current);
+            
+            console.log("IMAGE:", image.substring(0, 100));
+
+            const debugWindow = window.open();
+
+            if (debugWindow) {
+            debugWindow.document.write(`
+                <html>
+                <body style="
+                    margin: 0;
+                    background: #222;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                ">
+                    <img src="${image}" style="max-width: 90vw; max-height: 90vh;" />
+                </body>
+                </html>
+            `);
+            }
+            
+            // Pass the valid image to your parent function
+            onContinue(image);
+            
+        } catch (error) {
+            console.error('Oops, something went wrong!', error);
+        }
+    }
 
     return (
         <div className="editor-page">
@@ -243,8 +283,8 @@ function Editor({
                                             key={`${item.id}-current`}
                                             className="frame-current"
                                         >
-                                            {/* YOUR EXISTING PHOTO PRINT */}
                                             <div
+                                                ref={printRef}
                                                 className={`photo-print ${
                                                     layout === "6-cuts"
                                                         ? "print-six"
@@ -377,8 +417,8 @@ function Editor({
 
             <div className="tiny-note">
 
-                ✦ DRAG TO DECORATE<br />
-                ✦ CLICK TO CUSTOMIZE<br />
+                ✦ CHOOSE A FRAME YOU LIKE<br />
+                ✦ PICK YOUR FILTER<br/>
                 ✦ SAVE YOUR MEMORIES
 
             </div>
@@ -386,10 +426,6 @@ function Editor({
             </aside>
 
         </main>
-
-
-
-        {/* ================= FOOTER ================= */}
 
         <footer className="editor-footer">
 
@@ -413,13 +449,11 @@ function Editor({
 
 
             <button
-            className="editor-next-button"
-            onClick={() => {
-                console.log("Continue to final:", photos);
-                
-            }}
+                className="editor-next-button"
+                onClick={
+                    handleContinue}
             >
-            DECORATE ▶
+                DECORATE ▶
             </button>
 
         </footer>

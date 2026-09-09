@@ -1,772 +1,765 @@
+
+:root {
+  /* chrome / silver */
+  --chrome-100: #f5f7f9;
+  --chrome-200: #e6e9ed;
+  --chrome-300: #cfd3d9;
+  --chrome-500: #9aa0a8;
+  --chrome-700: #5b6067;
+  --chrome-900: #201f23;
+
+  /* turquoise accent */
+  --turq-200: #c3f8f0;
+  --turq-300: #8fefdf;
+  --turq-400: #4fe0cf;
+  --turq-500: #22cbb8;
+  --turq-600: #12a897;
+  --turq-glow: rgba(34, 203, 184, 0.55);
+
+  /* paper */
+  --paper: #efe7d6;
+  --paper-edge: #d9cdb2;
+  --ink: #232227;
+
+  --display-font: "VT323", "Courier New", monospace;
+  --body-font: "Courier New", monospace;
+}
+
+
 /* =========================================================
-   DECO PAGE
-   ========================================================= */
+   GLOBAL
+========================================================= */
+
+.deco-page,
+.deco-page *,
+.deco-page *::before,
+.deco-page *::after {
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   PAGE SHELL
+========================================================= */
 
 .deco-page {
-    min-height: 100vh;
-    width: 100%;
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 0;
 
-    display: flex;
-    flex-direction: column;
+  display: grid;
+  grid-template-rows:
+    clamp(42px, 6vh, 56px)
+    minmax(0, 1fr)
+    clamp(48px, 7vh, 64px);
 
-    background:
-        radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-        #17171c;
+  overflow: hidden;
 
-    background-size: 18px 18px;
+  font-family: var(--body-font);
+  color: var(--ink);
 
-    color: white;
+  background:
+    radial-gradient(
+      circle at 18% 15%,
+      rgba(255, 255, 255, 0.6) 0 1px,
+      transparent 2px
+    ),
+    radial-gradient(
+      circle at 82% 68%,
+      rgba(79, 224, 207, 0.14) 0 1px,
+      transparent 2px
+    ),
+    linear-gradient(
+      135deg,
+      var(--chrome-200),
+      var(--chrome-500) 45%,
+      var(--chrome-300)
+    );
+}
 
-    font-family:
-        "Courier New",
-        monospace;
+.deco-page::before {
+  content: "";
 
-    overflow: hidden;
+  position: fixed;
+  inset: 0;
+
+  z-index: 1;
+  pointer-events: none;
+
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.04) 0px,
+      rgba(255, 255, 255, 0.04) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+
+  mix-blend-mode: overlay;
 }
 
 
 /* =========================================================
    TOP BAR
-   ========================================================= */
+========================================================= */
 
 .deco-topbar {
-    height: 70px;
+  position: relative;
+  z-index: 10;
 
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
+  width: 100%;
+  min-height: 0;
 
-    padding: 0 28px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
 
-    background: rgba(20, 20, 25, 0.95);
+  padding: 0 clamp(10px, 2vw, 24px);
 
-    border-bottom: 2px solid #777;
+  border-bottom: 2px solid var(--chrome-700);
 
-    box-shadow:
-        0 4px 0 rgba(255, 255, 255, 0.05),
-        0 8px 20px rgba(0, 0, 0, 0.35);
+  background:
+    linear-gradient(
+      to bottom,
+      var(--chrome-100),
+      var(--chrome-500)
+    );
 
-    flex-shrink: 0;
+  box-shadow:
+    inset 0 1px var(--chrome-100),
+    0 2px 10px rgba(0, 0, 0, 0.28);
+
+  font-size: clamp(8px, 0.7vw, 11px);
+  letter-spacing: 1px;
 }
-
 
 .deco-brand {
-    font-size: 15px;
-    font-weight: bold;
-    letter-spacing: 2px;
+  font-family: var(--display-font);
+  font-size: 16px;
+  letter-spacing: 1px;
+  color: var(--chrome-900);
 }
-
 
 .deco-title {
-    justify-self: center;
+  justify-self: center;
 
-    padding: 9px 22px;
+  font-family: var(--display-font);
+  font-size: 22px;
+  letter-spacing: 3px;
 
-    background: rgba(255, 255, 255, 0.08);
+  color: var(--turq-600);
 
-    border: 1px solid #888;
-
-    box-shadow:
-        inset 0 0 0 1px rgba(255, 255, 255, 0.05),
-        4px 4px 0 rgba(0, 0, 0, 0.4);
-
-    font-size: 16px;
-    font-weight: bold;
-
-    letter-spacing: 2px;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7),
+    0 0 10px var(--turq-glow);
 }
-
 
 .deco-status {
-    justify-self: end;
+  justify-self: end;
 
-    font-size: 12px;
-    letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  font-size: 10px;
+  color: var(--chrome-700);
 }
 
-
 .status-light {
-    margin-right: 8px;
-    font-size: 10px;
+  color: var(--turq-500);
 
-    color: #baffd0;
+  text-shadow:
+    0 0 6px var(--turq-glow),
+    0 0 12px var(--turq-glow);
 
-    text-shadow:
-        0 0 5px #baffd0;
+  animation: deco-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes deco-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
 
 
 /* =========================================================
    MAIN WORKSPACE
-   ========================================================= */
+========================================================= */
 
 .deco-workspace {
-    flex: 1;
+  position: relative;
+  z-index: 2;
 
-    min-height: 0;
+  width: 100%;
+  max-width: 1400px;
+  height: 100%;
+  min-height: 0;
 
-    display: grid;
+  margin: 0 auto;
 
-    grid-template-columns:
-        minmax(180px, 220px)
-        minmax(420px, 1fr)
-        minmax(180px, 220px);
+  display: grid;
 
-    gap: 18px;
+  grid-template-columns:
+    210px
+    minmax(0, 1fr)
+    210px;
 
-    padding: 18px 22px;
+  gap: clamp(10px, 1.5vw, 20px);
 
-    overflow: hidden;
+  padding:
+    clamp(8px, 1.5vh, 18px)
+    clamp(10px, 2vw, 24px);
+
+  overflow: hidden;
 }
 
 
 /* =========================================================
    SIDE PANELS
-   ========================================================= */
+========================================================= */
 
 .deco-panel {
-    min-height: 0;
+  min-width: 0;
+  min-height: 0;
 
-    padding: 18px;
+  display: flex;
+  flex-direction: column;
 
-    background: rgba(30, 30, 36, 0.88);
+  padding: 14px;
 
-    border: 2px solid #666;
+  background:
+    linear-gradient(
+      160deg,
+      rgba(245, 247, 249, 0.92),
+      rgba(154, 160, 168, 0.82)
+    );
 
-    box-shadow:
-        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-        5px 5px 0 rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--chrome-700);
+  border-radius: 8px;
 
-    overflow-y: auto;
-}
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.85),
+    0 6px 18px rgba(0, 0, 0, 0.24);
 
+  backdrop-filter: blur(6px);
 
-.panel-heading {
-    padding-bottom: 14px;
-
-    border-bottom: 1px dashed #666;
-
-    font-size: 13px;
-    font-weight: bold;
-
-    letter-spacing: 2px;
+  overflow: hidden;
 }
 
 
 /* =========================================================
-   LEFT CONTROLS
-   ========================================================= */
+   PANEL HEADINGS
+========================================================= */
 
-.deco-group {
-    margin-top: 22px;
+.panel-heading {
+  flex-shrink: 0;
+
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+
+  border-bottom: 1px dashed var(--chrome-700);
+
+  font-family: var(--display-font);
+  font-size: 16px;
+  letter-spacing: 1px;
+
+  color: var(--turq-600);
 }
 
 
+/* =========================================================
+   LEFT PANEL
+========================================================= */
+
+.deco-left {
+  overflow-y: auto;
+}
+
+.deco-group {
+  padding: 12px 0;
+
+  border-bottom: 1px dashed var(--chrome-500);
+}
+
+.deco-group:first-of-type {
+  padding-top: 0;
+}
+
+.deco-group:last-child {
+  border-bottom: none;
+}
+
 .deco-heading {
-    margin-bottom: 12px;
+  margin-bottom: 10px;
 
-    font-size: 11px;
-    font-weight: bold;
+  font-family: var(--body-font);
+  font-size: 9px;
+  font-weight: bold;
 
-    letter-spacing: 2px;
+  letter-spacing: 1.5px;
 
-    opacity: 0.8;
+  color: var(--chrome-700);
 }
 
 
 /* =========================================================
    STICKER GRID
-   ========================================================= */
+========================================================= */
 
 .sticker-grid {
-    display: grid;
+  display: grid;
 
-    grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
 
-    gap: 8px;
+  gap: 7px;
 }
-
 
 .sticker-grid button {
-    aspect-ratio: 1;
+  width: 100%;
+  aspect-ratio: 1;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  padding: 0;
 
-    border: 1px solid #777;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-    background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--chrome-700);
+  border-radius: 5px;
 
-    color: white;
+  background:
+    linear-gradient(
+      to bottom,
+      var(--chrome-100),
+      var(--chrome-300)
+    );
 
-    font-size: 23px;
+  color: var(--chrome-900);
 
-    cursor: pointer;
+  font-size: 20px;
 
-    transition:
-        transform 0.12s ease,
-        background 0.12s ease,
-        border-color 0.12s ease;
+  cursor: pointer;
+
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.9),
+    0 2px 4px rgba(0, 0, 0, 0.18);
+
+  transition:
+    transform 0.12s ease,
+    background 0.12s ease,
+    box-shadow 0.12s ease;
 }
-
 
 .sticker-grid button:hover {
-    transform: translateY(-2px);
+  transform: translateY(-1px);
 
-    background: rgba(255, 255, 255, 0.13);
+  background:
+    linear-gradient(
+      135deg,
+      var(--turq-200),
+      var(--turq-300)
+    );
 
-    border-color: white;
+  border-color: var(--turq-600);
+
+  box-shadow:
+    inset 0 1px white,
+    0 0 8px var(--turq-glow);
 }
 
-
 .sticker-grid button:active {
-    transform: translateY(1px);
+  transform: translateY(1px);
+
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 
 /* =========================================================
    ADD TEXT
-   ========================================================= */
+========================================================= */
 
 .add-text-button {
-    width: 100%;
+  width: 100%;
 
-    padding: 12px 8px;
+  padding: 9px 8px;
 
-    border: 1px solid #777;
+  border: 1px solid var(--chrome-700);
+  border-radius: 4px;
 
-    background: rgba(255, 255, 255, 0.06);
+  background:
+    linear-gradient(
+      to bottom,
+      var(--chrome-100),
+      var(--chrome-300)
+    );
 
-    color: white;
+  color: var(--ink);
 
-    font-family: inherit;
-    font-size: 11px;
-    font-weight: bold;
+  font-family: var(--body-font);
+  font-size: 9px;
+  font-weight: bold;
 
-    letter-spacing: 1px;
+  letter-spacing: 1px;
 
-    cursor: pointer;
+  cursor: pointer;
 
-    transition: 0.15s ease;
+  box-shadow:
+    inset 0 1px white,
+    0 2px 4px rgba(0, 0, 0, 0.16);
+
+  transition:
+    transform 0.12s ease,
+    background 0.12s ease;
 }
-
 
 .add-text-button:hover {
-    background: rgba(255, 255, 255, 0.13);
+  background:
+    linear-gradient(
+      135deg,
+      var(--turq-200),
+      var(--turq-300)
+    );
 
-    border-color: white;
+  border-color: var(--turq-600);
+}
+
+.add-text-button:active {
+  transform: translateY(1px);
 }
 
 
 /* =========================================================
-   PREVIEW AREA
-   ========================================================= */
+   CENTER PREVIEW AREA
+========================================================= */
+
+/* =========================
+   DECO PREVIEW
+   ========================= */
 
 .deco-preview-area {
-    min-width: 0;
-    min-height: 0;
+  background: hotpink;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+  padding: 20px;
 }
-
 
 .preview-label {
-    margin-bottom: 12px;
+  margin-bottom: 10px;
 
-    font-size: 11px;
-    font-weight: bold;
+  font-family: var(--display-font);
+  font-size: 18px;
+  letter-spacing: 1px;
+  color: var(--chrome-900);
 
-    letter-spacing: 2px;
-
-    opacity: 0.65;
+  text-transform: uppercase;
 }
 
 
-/* =========================================================
-   CANVAS AREA
-   ========================================================= */
+/* =========================
+   ACTUAL IMAGE
+   ========================= */
 
-.deco-canvas {
-    flex: 1;
+.deco-image-wrapper {
+  position: relative;
 
-    width: 100%;
-    min-height: 0;
+  width: auto;
+  height: auto;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  max-width: min(520px, 70%);
+  max-height: calc(100% - 20px);
 
-    padding: 20px;
+  display: inline-block;
 
-    background:
-        linear-gradient(
-            45deg,
-            rgba(255, 255, 255, 0.025) 25%,
-            transparent 25%
-        ),
-        linear-gradient(
-            -45deg,
-            rgba(255, 255, 255, 0.025) 25%,
-            transparent 25%
-        );
+  overflow: hidden;
 
-    border: 1px dashed #555;
+  background: transparent;
 
-    overflow: hidden;
+  box-shadow:
+    0 16px 30px rgba(0, 0, 0, 0.22),
+    0 3px 8px rgba(0, 0, 0, 0.14);
+
+  line-height: 0;
 }
 
 
-/* =========================================================
-   PHOTO PRINT
-   ========================================================= */
+/* The generated PNG itself */
 
-.deco-canvas .photo-print {
-    position: relative;
+.final-photo {
+  display: block;
 
-    width: min(300px, 65%);
+  width: auto;
+  height: auto;
 
-    height: auto;
+  max-width: 100%;
+  max-height: 100%;
 
-    flex-shrink: 0;
+  object-fit: contain;
 
-    box-shadow:
-        0 12px 30px rgba(0, 0, 0, 0.55),
-        0 0 0 1px rgba(255, 255, 255, 0.2);
-
-    background: white;
-
-    overflow: hidden;
+  user-select: none;
+  pointer-events: none;
 }
 
 
-/* 4 CUTS */
-
-.deco-canvas .print-four {
-    aspect-ratio: 2 / 6;
-}
-
-
-/* 6 CUTS */
-
-.deco-canvas .print-six {
-    aspect-ratio: 4 / 6;
-}
-
-
-/* =========================================================
-   PHOTOS
-   ========================================================= */
-
-.photo-grid {
-    position: relative;
-    z-index: 1;
-
-    width: 100%;
-}
-
-
-.grid-four {
-    display: grid;
-
-    grid-template-columns: 1fr;
-}
-
-
-.grid-six {
-    display: grid;
-
-    grid-template-columns: repeat(2, 1fr);
-}
-
-
-.strip-photo {
-    position: relative;
-
-    overflow: hidden;
-}
-
-
-.strip-photo img {
-    display: block;
-
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
-}
-
-
-.photo-number {
-    position: absolute;
-
-    bottom: 5px;
-    right: 6px;
-
-    font-size: 8px;
-
-    color: white;
-
-    text-shadow:
-        1px 1px 2px black;
-}
-
-
-/* =========================================================
-   FRAME
-   ========================================================= */
-
-.frame-overlay {
-    position: absolute;
-
-    inset: 0;
-
-    width: 100%;
-    height: 100%;
-
-    object-fit: fill;
-
-    z-index: 5;
-
-    pointer-events: none;
-}
-
-
-/* =========================================================
-   PRINT DETAILS
-   ========================================================= */
-
-.print-top-decoration,
-.print-bottom {
-    position: relative;
-
-    z-index: 3;
-
-    text-align: center;
-}
-
-
-.print-top-decoration {
-    padding: 6px;
-
-    font-size: 10px;
-}
-
-
-.print-bottom {
-    padding: 8px;
-}
-
-
-.print-date {
-    font-size: 7px;
-    letter-spacing: 1px;
-}
-
-
-.print-stars {
-    margin-top: 3px;
-
-    font-size: 8px;
-}
-
-
-/* =========================================================
+/* =========================
    DECORATIONS
-   ========================================================= */
+   ========================= */
 
 .decoration {
-    position: absolute;
+  position: absolute;
 
-    z-index: 10;
+  z-index: 5;
 
-    transform-origin: center;
+  transform-origin: center;
 
-    user-select: none;
-
-    cursor: pointer;
+  cursor: pointer;
 }
-
 
 .decoration-sticker {
-    font-size: 35px;
-
-    line-height: 1;
-
-    filter:
-        drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.25));
+  font-size: 42px;
+  line-height: 1;
 }
-
 
 .decoration-text {
-    font-size: 16px;
-    font-weight: bold;
+  padding: 5px 9px;
 
-    white-space: nowrap;
+  background: rgba(255, 255, 255, 0.88);
 
-    text-shadow:
-        1px 1px 0 white;
+  border: 1px solid var(--chrome-500);
+  border-radius: 4px;
+
+  color: var(--ink);
+
+  font-family: var(--body-font);
+  font-size: 16px;
+  font-weight: bold;
+
+  white-space: nowrap;
+
+  box-shadow:
+    2px 2px 0 rgba(0, 0, 0, 0.15);
 }
 
-
 .decoration.selected {
-    outline: 1px dashed white;
-
-    outline-offset: 5px;
+  outline: 2px dashed var(--turq-500);
+  outline-offset: 3px;
 }
 
 
 /* =========================================================
    RIGHT PANEL
-   ========================================================= */
+========================================================= */
 
-.info-box {
-    display: flex;
-    flex-direction: column;
-
-    gap: 5px;
-
-    margin-top: 18px;
-
-    padding: 12px;
-
-    border: 1px solid #555;
-
-    background: rgba(255, 255, 255, 0.04);
-}
-
-
-.info-box span {
-    font-size: 9px;
-
-    letter-spacing: 1px;
-
-    opacity: 0.55;
-}
-
-
-.info-box strong {
-    font-size: 11px;
-
-    letter-spacing: 1px;
-}
-
-
-.tiny-note {
-    margin-top: 20px;
-
-    font-size: 9px;
-
-    line-height: 1.8;
-
-    letter-spacing: 1px;
-
-    opacity: 0.55;
+.deco-right {
+  overflow-y: auto;
 }
 
 
 /* =========================================================
-   OBJECT CONTROLS
-   ========================================================= */
+   INFO BOX
+========================================================= */
 
-.deco-action {
-    width: 100%;
+.info-box {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 
-    margin-top: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
 
-    padding: 10px;
+  background: rgba(255, 255, 255, 0.35);
 
-    border: 1px solid #666;
+  border: 1px solid var(--chrome-500);
+  border-radius: 4px;
 
-    background: rgba(255, 255, 255, 0.05);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.65);
+}
 
-    color: white;
+.info-box span {
+  font-size: 8px;
 
-    font-family: inherit;
+  letter-spacing: 1px;
 
-    font-size: 9px;
-    font-weight: bold;
+  color: var(--chrome-700);
+}
 
-    letter-spacing: 1px;
+.info-box strong {
+  font-family: var(--display-font);
 
-    cursor: pointer;
+  font-size: 17px;
+  letter-spacing: 1px;
+
+  color: var(--turq-600);
 }
 
 
-.deco-action:hover {
-    background: rgba(255, 255, 255, 0.12);
+/* =========================================================
+   EMPTY / HELPER TEXT
+========================================================= */
 
-    border-color: white;
+.tiny-note {
+  margin-top: 12px;
+
+  padding: 10px;
+
+  border: 1px dashed var(--chrome-500);
+
+  background: rgba(255, 255, 255, 0.28);
+
+  color: var(--chrome-700);
+
+  font-size: 7px;
+  line-height: 1.8;
+
+  letter-spacing: 0.8px;
+}
+
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
+.deco-action {
+  width: calc(100% - 20px);
+
+  margin: 5px 10px;
+
+  padding: 8px;
+
+  border: 1px solid var(--chrome-700);
+  border-radius: 4px;
+
+  background:
+    linear-gradient(
+      to bottom,
+      var(--chrome-100),
+      var(--chrome-300)
+    );
+
+  color: var(--ink);
+
+  font-family: var(--body-font);
+  font-size: 9px;
+  font-weight: bold;
+
+  letter-spacing: 1px;
+
+  cursor: pointer;
+
+  box-shadow:
+    inset 0 1px white,
+    0 2px 4px rgba(0, 0, 0, 0.15);
+
+  transition:
+    transform 0.12s ease,
+    background 0.12s ease;
+}
+
+.deco-action:hover {
+  transform: translateY(-1px);
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--turq-200),
+      var(--turq-300)
+    );
+
+  border-color: var(--turq-600);
+}
+
+.deco-action:active {
+  transform: translateY(1px);
 }
 
 
 /* =========================================================
    FOOTER
-   ========================================================= */
+========================================================= */
 
 .deco-footer {
-    height: 62px;
+  position: relative;
+  z-index: 20;
 
-    display: grid;
+  width: 100%;
+  min-height: 0;
 
-    grid-template-columns: 1fr auto 1fr;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
 
-    align-items: center;
+  align-items: center;
 
-    padding: 0 22px;
+  padding: 0 clamp(10px, 2vw, 24px);
 
-    background: rgba(20, 20, 25, 0.96);
+  border-top: 2px solid var(--chrome-700);
 
-    border-top: 2px solid #666;
+  background:
+    linear-gradient(
+      to bottom,
+      var(--chrome-300),
+      var(--chrome-500)
+    );
 
-    flex-shrink: 0;
-}
-
-
-.deco-footer button {
-    font-family: inherit;
-
-    font-size: 10px;
-    font-weight: bold;
-
-    letter-spacing: 1px;
-
-    cursor: pointer;
-}
-
-
-/* BACK */
-
-.deco-back-button {
-    justify-self: start;
-
-    padding: 10px 16px;
-
-    border: 1px solid #666;
-
-    background: transparent;
-
-    color: white;
-}
-
-
-.deco-back-button:hover {
-    background: rgba(255, 255, 255, 0.08);
-}
-
-
-/* UNDO / REDO / RESET */
-
-.deco-history {
-    display: flex;
-
-    gap: 8px;
-}
-
-
-.deco-history button {
-    padding: 9px 12px;
-
-    border: 1px solid #555;
-
-    background: rgba(255, 255, 255, 0.05);
-
-    color: white;
-}
-
-
-.deco-history button:hover {
-    background: rgba(255, 255, 255, 0.12);
-}
-
-
-/* SAVE */
-
-.deco-save-button {
-    justify-self: end;
-
-    padding: 12px 20px;
-
-    border: 2px solid white;
-
-    background: white;
-
-    color: #17171c;
-
-    box-shadow:
-        4px 4px 0 #555;
-}
-
-
-.deco-save-button:hover {
-    transform: translate(-1px, -1px);
-
-    box-shadow:
-        5px 5px 0 #555;
+  box-shadow:
+    inset 0 1px var(--chrome-100);
 }
 
 
 /* =========================================================
-   RESPONSIVE
-   ========================================================= */
+   FOOTER BUTTONS
+========================================================= */
 
-@media (max-width: 900px) {
+.deco-back-button,
+.deco-history button,
+.deco-save-button {
+  height: 32px;
 
-    .deco-workspace {
-        grid-template-columns:
-            160px
-            minmax(300px, 1fr)
-            160px;
+  border: 1px solid var(--chrome-700);
+  border-radius: 4px;
 
-        gap: 10px;
+  background:
+    linear-gradient(
+      to bottom,
+      var(--chrome-100),
+      var(--chrome-500)
+    );
 
-        padding: 12px;
-    }
+  color: var(--ink);
 
-    .deco-panel {
-        padding: 12px;
-    }
+  font-family: var(--body-font);
+  font-size: clamp(8px, 0.65vw, 10px);
+  font-weight: bold;
 
-    .deco-canvas .photo-print {
-        width: min(260px, 70%);
-    }
+  letter-spacing: 1px;
+
+  cursor: pointer;
+
+  box-shadow:
+    inset 0 1px white,
+    0 2px 4px rgba(0, 0, 0, 0.2);
+
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease;
 }
 
-
-@media (max-width: 700px) {
-
-    .deco-workspace {
-        grid-template-columns: 1fr;
-
-        overflow-y: auto;
-    }
-
-    .deco-panel {
-        min-height: auto;
-    }
-
-    .deco-preview-area {
-        min-height: 500px;
-    }
-
-    .deco-footer {
-        grid-template-columns: 1fr;
-
-        height: auto;
-
-        gap: 10px;
-
-        padding: 12px;
-    }
-
-    .deco-history {
-        justify-content: center;
-    }
-
-    .deco-save-button,
-    .deco-back-button {
-        justify-self: center;
-    }
-}
+.deco-back-button:hover,
+.deco-history button:hover,
+.deco-save-button:hover {
+  transform: trans

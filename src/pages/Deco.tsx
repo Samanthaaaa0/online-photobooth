@@ -1,11 +1,6 @@
 import { useState } from "react";
 import "../Deco.css";
 
-type LayoutType =
-    | "4-cuts"
-    | "6-cuts"
-    | "meme";
-
 type Decoration =
     | {
         id: string;
@@ -26,23 +21,13 @@ type Decoration =
         rotation: number;
     };
 
-type Frame = {
-    id: string;
-    name: string;
-    image: string;
-};
-
 type DecoProps = {
-    photos: string[];
-    layout: LayoutType | null;
-    frame: Frame;
+    image: string;
     onBack: () => void;
 };
 
 function Deco({
-    photos,
-    layout,
-    frame,
+    image,
     onBack,
 }: DecoProps) {
 
@@ -62,7 +47,7 @@ function Deco({
                 </div>
 
                 <div className="deco-title">
-                    STICKER LAB 2000
+                    PHOTO EDITOR 2000
                 </div>
 
                 <div className="deco-status">
@@ -132,118 +117,12 @@ function Deco({
 
                 <section className="deco-preview-area">
 
-                    <div className="preview-label">
-                        DECORATION PREVIEW
-                    </div>
-
-
-                    <div className="deco-canvas">
-
-                        <div
-                            className={`photo-print ${
-                                layout === "6-cuts"
-                                    ? "print-six"
-                                    : "print-four"
-                            }`}
-                        >
-
-                            {/* TOP */}
-
-                            <div className="print-top-decoration">
-                                ✦
-                            </div>
-
-
-                            {/* PHOTOS */}
-
-                            <div
-                                className={
-                                    layout === "6-cuts"
-                                        ? "photo-grid grid-six"
-                                        : "photo-grid grid-four"
-                                }
-                            >
-
-                                {photos.map((photo, index) => (
-
-                                    <div
-                                        className="strip-photo"
-                                        key={index}
-                                    >
-
-                                        <img
-                                            src={photo}
-                                            alt={`Photo ${index + 1}`}
-                                        />
-
-                                        <span className="photo-number">
-                                            {String(index + 1).padStart(2, "0")}
-                                        </span>
-
-                                    </div>
-
-                                ))}
-
-                            </div>
-
-
-                            {/* BOTTOM */}
-
-                            <div className="print-bottom">
-
-                                <div className="print-date">
-                                    PHOTOBOOTH 2000
-                                </div>
-
-                                <div className="print-stars">
-                                    ✦ ♡ ✦
-                                </div>
-
-                            </div>
-
-
-                            {/* FRAME */}
-
-                            <img
-                                src={frame.image}
-                                className="frame-overlay"
-                                alt=""
-                            />
-
-
-                            {/* DECORATIONS */}
-
-                            {decorations.map((decoration) => (
-
-                                <div
-                                    key={decoration.id}
-                                    className={`decoration decoration-${decoration.type} ${
-                                        selectedId === decoration.id
-                                            ? "selected"
-                                            : ""
-                                    }`}
-                                    style={{
-                                        left: `${decoration.x}%`,
-                                        top: `${decoration.y}%`,
-                                        transform: `
-                                            translate(-50%, -50%)
-                                            scale(${decoration.scale})
-                                            rotate(${decoration.rotation}deg)
-                                        `,
-                                    }}
-                                    onClick={() =>
-                                        setSelectedId(decoration.id)
-                                    }
-                                >
-
-                                    {decoration.content}
-
-                                </div>
-
-                            ))}
-
-                        </div>
-
+                    <div className="deco-image-wrapper">
+                        <img
+                            src={image}
+                            className="final-photo"
+                            alt="Finished photobooth"
+                        />
                     </div>
 
                 </section>

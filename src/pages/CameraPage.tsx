@@ -15,7 +15,6 @@ type CameraPageProps = {
 };
 
 function CameraPage({
-  layout,
   onComplete,
 }: CameraPageProps) {
   // set up camera

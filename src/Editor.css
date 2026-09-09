@@ -348,7 +348,8 @@
   flex-direction: column;
   padding: 14px;
 
-  background: var(--paper);
+  /* background: hotpink; */
+  background: transparent;
   position: relative;
 
   box-shadow:
@@ -357,29 +358,10 @@
     inset 0 0 0 1px var(--paper-edge);
 }
 
-/* =========================
-   4 CUTS — matches:
-   PHOTO 1  x14 y32   252×135.25
-   PHOTO 2  x14 y172.25
-   PHOTO 3  x14 y312.50
-   PHOTO 4  x14 y452.75
-   (14 padding + 18 top-band, 5px gaps,
-    14 padding + 48 bottom-band = 650 total)
-========================= */
-
 .print-four {
   width: 280px;
   height: 650px;
 }
-
-/* =========================
-   6 CUTS — no fixed frame
-   table supplied yet, kept
-   proportional/responsive.
-   Send the same X/Y/W/H table
-   for this layout and it can
-   be locked the same way.
-========================= */
 
 .print-six {
   width: min(560px, 52vw);

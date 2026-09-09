@@ -20,12 +20,6 @@ type LayoutType =
   | "6-cuts"
   | "meme";
 
-type Frame = {
-    id: string;
-    name: string;
-    image: string;
-};
-
 function App() {
 
   const [page, setPage] = useState<Page>("intro");
@@ -36,8 +30,8 @@ function App() {
 
   const [selectedPhotos, setSelectedPhotos] = useState<string[]>([]);
 
-  const [selectedFrame, setSelectedFrame] = useState<Frame | null>(null);
-
+  // need to combine frame and photo before moving on
+  const [finalImage, setFinalImage] = useState<string | null>(null);
 
   return (
     <>
@@ -91,24 +85,21 @@ function App() {
             onBack={() => {
                 setPage("photo-selection");
             }}
-            onContinue={(filteredPhotos, frame) => {
-              setSelectedPhotos(filteredPhotos);
-              setSelectedFrame(frame);
-              setPage("deco");
+            onContinue={(image) => {
+                setFinalImage(image);
+                setPage("deco");
             }}
         />
       )}
 
-      {page === "deco" && selectedFrame && (
-          <Deco
-              photos={selectedPhotos}
-              layout={layout}
-              frame={selectedFrame}
-              onBack={() => {
-                  setPage("editor");
-              }}
-          />
-      )}
+      {page === "deco" && finalImage && (
+        <Deco
+            image={finalImage}
+            onBack={() => {
+                setPage("editor");
+            }}
+        />
+    )}
 
     </>
   );
