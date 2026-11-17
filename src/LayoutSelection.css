@@ -314,3 +314,89 @@
 
   color: #444;
 }
+
+
+/* =========================================
+   RESPONSIVE: layout page
+   The window is only as tall as it needs to be. It sits in the middle when there is room and the
+   page scrolls when there is not (it used to be cut off on short screens).
+   ========================================= */
+.layout-selection {
+  height: 100dvh;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  align-items: flex-start;
+  padding: clamp(10px, 3vh, 50px) clamp(10px, 2.5vw, 30px);
+}
+
+.layout-window {
+  margin: auto;              /* centres when there is space, scrolls when there is not */
+  width: min(1050px, 100%);
+  min-height: 0;
+}
+
+.layout-content {
+  padding: clamp(18px, 4.5vh, 45px) clamp(14px, 3vw, 40px) clamp(50px, 8vh, 70px);
+}
+
+.layout-content h1 {
+  font-size: clamp(22px, 3.2vw, 34px);
+}
+
+.layout-subtitle {
+  margin: 8px 0 clamp(14px, 4vh, 40px);
+}
+
+.layout-options {
+  gap: clamp(10px, 2vw, 25px);
+}
+
+.layout-card {
+  width: clamp(150px, 22vw, 240px);
+  padding: clamp(10px, 1.4vw, 18px);
+}
+
+.layout-image {
+  height: clamp(120px, 28vh, 280px);
+}
+
+/* phones: one card per row, picture on the left */
+@media (max-width: 700px) {
+  .layout-options {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .layout-card {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    grid-template-areas:
+      "pic info"
+      "pic btn";
+    gap: 4px 14px;
+    align-items: center;
+    text-align: left;
+    box-shadow: 0 0 22px 6px #8fefdf, inset 2px 2px white;
+  }
+
+  .layout-image {
+    grid-area: pic;
+    height: 112px;
+  }
+
+  .layout-card-info {
+    grid-area: info;
+  }
+
+  .layout-card-info h2 {
+    margin: 0 0 4px;
+  }
+
+  .select-button {
+    grid-area: btn;
+    margin-top: 6px;
+    text-align: center;
+  }
+}

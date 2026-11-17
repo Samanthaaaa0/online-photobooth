@@ -362,9 +362,12 @@
   height: 650px;
 }
 
+/* 6 cuts: 2 columns x 3 rows. Fixed size like .print-four, because the
+   frame art (assets/6cuts, 840x1196 = 2x) has its windows at exact pixels:
+   cells are 193 x 164 at x = 14 / 213 and y = 32 / 202 / 372 */
 .print-six {
-  width: min(560px, 52vw);
-  height: min(72vh, 500px);
+  width: 420px;
+  height: 598px;
 }
 
 
@@ -387,6 +390,7 @@
 }
 
 .grid-six {
+  gap: 6px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: repeat(3, minmax(0, 1fr));
 }
@@ -867,4 +871,212 @@
         height: 32px;
         flex-basis: 32px;
     }
+}
+
+
+/* =========================================
+   FILTER TILES: live thumbnail per look
+========================================= */
+
+.left-panel {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.filter-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 4px 4px 6px;
+
+  border: 1px solid var(--chrome-500);
+  border-radius: 4px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(207,211,217,0.8));
+  color: var(--ink);
+
+  font-family: var(--body-font);
+  font-size: 7px;
+  letter-spacing: 0.5px;
+  text-align: center;
+  cursor: pointer;
+
+  box-shadow: inset 0 1px rgba(255,255,255,0.9);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.filter-tile:hover {
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px white, 0 3px 8px rgba(0,0,0,0.2);
+}
+
+.filter-tile:focus-visible {
+  outline: 2px solid var(--turq-500);
+  outline-offset: 2px;
+}
+
+.filter-tile.active {
+  background: linear-gradient(135deg, var(--turq-200), var(--turq-500));
+  border-color: var(--turq-600);
+  box-shadow:
+    inset 0 0 8px rgba(255,255,255,0.55),
+    0 0 10px var(--turq-glow);
+}
+
+.filter-thumb {
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 2px;
+  background: #2a2a2e;
+}
+
+.filter-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.filter-name {
+  display: block;
+  white-space: nowrap;
+}
+
+
+/* neighbour frame previews keep the 6-cut frame's own proportions */
+.frame-carousel-wrapper.is-six .frame-neighbour {
+  aspect-ratio: 420 / 598;
+}
+
+
+/* =========================================================================
+   RESPONSIVE (clean breakpoints; these replace the older, overlapping ones above)
+   desktop  : filters | strip | info
+   tablet   : filters | strip            (info panel folds away)
+   phone    : strip on top, filters in a scrolling row underneath
+   The strip itself is scaled to the room it has (see .print-scale + the ResizeObserver in Editor.tsx).
+   ========================================================================= */
+.print-scale {
+  transform-origin: top left;
+  flex: none;
+  /* .frame-current centres its children: without this the full-size (unscaled) box was
+     centred inside the smaller scaled box and the strip came out shifted sideways */
+  align-self: flex-start;
+}
+
+.frame-current {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.editor-workspace {
+  grid-template-columns:
+    clamp(170px, 14.5vw, 215px)
+    minmax(0, 1fr)
+    clamp(170px, 14.5vw, 215px);
+  max-width: 1600px;
+}
+
+.editor-preview-area {
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.frame-carousel-wrapper {
+  gap: clamp(6px, 1.4vw, 24px);
+}
+
+.frame-carousel-window {
+  max-width: none;
+  overflow: visible;
+}
+
+/* side previews follow the strip's proportions */
+.frame-neighbour {
+  width: clamp(80px, 8vw, 140px);
+}
+
+/* ---- tablet and small laptops ---- */
+@media (max-width: 1100px) {
+  .editor-workspace {
+    grid-template-columns: clamp(160px, 21vw, 205px) minmax(0, 1fr);
+  }
+
+  .right-panel {
+    display: none;
+  }
+
+  .frame-neighbour {
+    display: none;
+  }
+}
+
+/* ---- phones, narrow windows and tablets held upright ---- */
+@media (max-width: 900px), ((max-aspect-ratio: 1 / 1) and (max-width: 1100px)) {
+  .editor-title {
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+
+  .editor-brand {
+    display: none;
+  }
+
+  .editor-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .editor-preview-area {
+    order: 1;
+  }
+
+  .left-panel {
+    order: 2;
+    max-height: none;
+    padding: 8px 10px 10px;
+    overflow: visible;
+  }
+
+  .left-panel .panel-heading,
+  .left-panel .capture-info {
+    display: none;
+  }
+
+  .left-panel .control-title {
+    margin-bottom: 6px;
+  }
+
+  /* filters become one scrolling row */
+  .filter-grid {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scroll-snap-type: x proximity;
+  }
+
+  .filter-tile {
+    flex: 0 0 82px;
+    scroll-snap-align: start;
+  }
+
+  .frame-arrow {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+  }
+
+  .editor-footer-display {
+    display: none;
+  }
 }

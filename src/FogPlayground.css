@@ -1,0 +1,367 @@
+/* FOG PLAYGROUND: fullscreen overlay. Everything is prefixed fp- so it
+   cannot clash with CameraPage.css. */
+
+.fp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  box-sizing: border-box;
+  padding: 8px 14px 10px;
+
+  background-color: #121212;
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.1) 1.5px,
+    transparent 1.5px
+  );
+  background-size: 14px 14px;
+
+  color: #ddd;
+  font-family: monospace;
+
+  animation: fp-enter 0.22s ease-out;
+}
+
+@keyframes fp-enter {
+  from {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ---- title bar ---- */
+
+.fp-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+
+  height: 22px;
+
+  font-size: 10px;
+  letter-spacing: 2px;
+  white-space: nowrap;
+}
+
+.fp-title {
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 1px #000;
+}
+
+.fp-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  color: #40e0d0;
+  text-shadow: 0 0 6px rgba(64, 224, 208, 0.6);
+}
+
+.fp-led {
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: #40e0d0;
+  box-shadow: 0 0 7px #40e0d0;
+
+  animation: fp-blink 1.6s ease-in-out infinite;
+}
+
+@keyframes fp-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+
+.fp-hint {
+  margin-left: auto;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ---- stage: the camera is the focus ---- */
+
+.fp-stage {
+  flex: 1;
+  min-height: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  container-type: size;
+}
+
+.fp-viewport {
+  position: relative;
+
+  /* biggest box with the camera WINDOW's aspect ratio that fits the stage.
+     (--ar comes from utils/cameraGeometry.ts, the same number the camera
+     page and the photo crop use.) */
+  width: min(100cqw, calc(100cqh * var(--ar, 1.333)));
+  aspect-ratio: var(--ar, 1.333);
+
+  background: #000;
+
+  border: 3px solid #6b6b6b;
+  box-shadow:
+    0 0 0 1px #000,
+    0 0 26px rgba(64, 224, 208, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.fp-layer {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  /* cover = the exact crop the camera window and saved photos use */
+  object-fit: cover;
+  object-position: 50% 50%;
+}
+
+.fp-video   { z-index: 1; }
+.fp-effect  { z-index: 2; pointer-events: none; }
+.fp-markers { z-index: 3; pointer-events: none; }
+
+.fp-corner {
+  position: absolute;
+  z-index: 4;
+
+  width: 16px;
+  height: 16px;
+
+  pointer-events: none;
+
+  border: 0 solid #40e0d0;
+  filter: drop-shadow(0 0 4px rgba(64, 224, 208, 0.8));
+}
+
+.fp-tl { top: 8px;    left: 8px;  border-top-width: 2px;    border-left-width: 2px; }
+.fp-tr { top: 8px;    right: 8px; border-top-width: 2px;    border-right-width: 2px; }
+.fp-bl { bottom: 8px; left: 8px;  border-bottom-width: 2px; border-left-width: 2px; }
+.fp-br { bottom: 8px; right: 8px; border-bottom-width: 2px; border-right-width: 2px; }
+
+/* ---- bottom toolbar (compact) ---- */
+
+.fp-toolbar {
+  padding: 8px 10px;
+
+  background: linear-gradient(#303030, #1a1a1a);
+
+  border: 2px solid #5a5a5a;
+  box-shadow:
+    inset 1px 1px rgba(255, 255, 255, 0.12),
+    3px 3px #050505;
+}
+
+.fp-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.fp-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fp-group-right {
+  margin-left: auto;
+}
+
+.fp-btn {
+  padding: 7px 11px;
+
+  background: linear-gradient(#dcdcdc, #888);
+  color: #222;
+
+  border: 2px solid #555;
+  box-shadow:
+    inset 1px 1px white,
+    2px 2px #000;
+
+  font-family: monospace;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition: transform 0.12s ease;
+}
+
+.fp-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.fp-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.fp-btn.active {
+  background: #1b1b1b;
+  color: #bff7f1;
+
+  border-color: #40e0d0;
+  box-shadow:
+    inset 2px 2px #000,
+    0 0 9px rgba(64, 224, 208, 0.5);
+}
+
+.fp-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.fp-done {
+  background: linear-gradient(#ff7fbd, #d62b82);
+  color: #fff;
+
+  border-color: #ffc9e4;
+  box-shadow:
+    inset 1px 1px rgba(255, 255, 255, 0.5),
+    2px 2px #000,
+    0 0 10px rgba(255, 79, 163, 0.55);
+
+  text-shadow: 1px 1px rgba(0, 0, 0, 0.45);
+}
+
+.fp-slider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 9px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  white-space: nowrap;
+
+  color: #ddd;
+}
+
+.fp-slider input[type="range"] {
+  width: 110px;
+
+  accent-color: #40e0d0;
+  cursor: pointer;
+}
+
+/* smaller laptops: tighten things up */
+@media (max-width: 1100px), (max-height: 700px) {
+  .fp-hint { display: none; }
+
+  .fp-btn {
+    padding: 6px 8px;
+    font-size: 9px;
+  }
+
+  .fp-slider input[type="range"] { width: 80px; }
+
+  .fp-group-right { margin-left: 0; }
+}
+
+
+/* ---- tracking OFF / preview: LED goes dark ---- */
+
+.fp-led.off {
+  background: #555;
+  box-shadow: none;
+  animation: none;
+}
+
+/* ---- neon style swatches ---- */
+
+.fp-swatch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fp-dot {
+  width: 10px;
+  height: 10px;
+
+  border-radius: 50%;
+
+  background: var(--sw, #fff);
+  box-shadow: 0 0 6px var(--sw, #fff);
+}
+
+.fp-btn.active .fp-dot {
+  box-shadow: 0 0 9px var(--sw, #fff), 0 0 2px #fff;
+}
+
+/* ---- PREVIEW RESULT: only the camera, no controls in the way ---- */
+
+.fp-previewing .fp-titlebar,
+.fp-previewing .fp-corner {
+  display: none;
+}
+
+.fp-previewing .fp-viewport {
+  box-shadow:
+    0 0 0 1px #000,
+    0 0 40px rgba(64, 224, 208, 0.12);
+}
+
+.fp-preview-bar {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+
+  padding-bottom: 2px;
+}
+
+.fp-preview-btn {
+  border-color: #ff4fa3;
+}
+
+/* ---- brush shape chips (line / heart / star / sparkle) ---- */
+
+.fp-shape {
+  min-width: 34px;
+  padding: 6px 8px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* =========================================================================
+   PHONES: the bottom row (hand tracking / effect in photo / DONE) wraps, and DONE always has a
+   full-width button of its own, so it can never run off the screen
+   ========================================================================= */
+@media (max-width: 640px) {
+  .fp-group-right {
+    width: 100%;
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+
+  .fp-group-right .fp-btn {
+    flex: 1 1 auto;
+  }
+
+  .fp-group-right .fp-done {
+    flex: 1 1 100%;
+    padding: 9px 10px;
+  }
+}

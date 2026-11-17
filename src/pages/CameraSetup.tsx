@@ -4,6 +4,7 @@ import "../App.css";
 import ToggleSwitch from "../components/ToggleSwitch";
 import cameraFrame from "../assets/cameraframe.png";
 import startbutton from "../assets/Startbutton.png";
+import { CAMERA_FRAME_STYLE } from "../utils/cameraGeometry";
 
 interface CameraSetupProps {
   onStart: () => void;
@@ -73,7 +74,7 @@ function CameraSetup({ onStart }: CameraSetupProps) {
             </div>
 
             {/* CAMERA */}
-            <div className="camera-frame">
+            <div className="camera-frame" style={CAMERA_FRAME_STYLE}>
 
                 <video
                 ref={videoRef}

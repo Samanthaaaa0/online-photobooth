@@ -1,841 +1,778 @@
-import React, { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import "../deco.css";
+import {
+  DEFAULT_COLOUR,
+  DEFAULT_FONT,
+  FONTS,
+  STICKER_CATEGORIES,
+  TEXT_COLOURS,
+  TEXT_PRESETS,
+  ensureFonts,
+  fontCss,
+  loadImage,
+  stickerArt,
+  stickersIn,
+  textArt,
+} from "../utils/decoAssets";
+import type { Art, FontId } from "../utils/decoAssets";
 
-type Decoration = {
-    id: string;
-    type: "text" | "sticker";
-    content: string;
+// =====================================================================
+// MODEL
+// Positions and sizes are FRACTIONS OF THE PICTURE (0..1), never pixels.
+// That is why stickers stay put when the window resizes, and why the saved
+// PNG is identical to what is on screen at any resolution.
+//   cx, cy : centre of the item (fraction of picture width / height)
+//   w      : item width (fraction of picture width). Height follows the art.
+//   rot    : degrees
+// =====================================================================
 
-    x: number;
-    y: number;
-
-    width: number;
-    height: number;
-
-    rotation: number;
+type Item = {
+  id: string;
+  kind: "sticker" | "text";
+  sticker?: string;
+  text?: string;
+  font?: FontId;
+  colour?: string;
+  cx: number;
+  cy: number;
+  w: number;
+  rot: number;
 };
 
 type DecoProps = {
-    image: string;
-    onBack: () => void;
+  image: string;
+  onBack: () => void;
 };
 
-type Action = "move" | "resize" | "rotate";
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+const HISTORY_LIMIT = 60;
+
+const artFor = (item: Item): Art =>
+  item.kind === "sticker"
+    ? stickerArt(item.sticker ?? "")
+    : textArt(item.text ?? "", item.font ?? DEFAULT_FONT, item.colour ?? DEFAULT_COLOUR);
+
+const newId = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : String(Date.now() + Math.random());
+
+/** font chips (each in its own face) + the five text colours */
+function TextLook({
+  font,
+  colour,
+  onFont,
+  onColour,
+}: {
+  font: FontId;
+  colour: string;
+  onFont: (f: FontId) => void;
+  onColour: (hex: string) => void;
+}) {
+  const current = FONTS.find((f) => f.id === font);
+
+  return (
+    <>
+      <div className="deco-heading">FONT</div>
+      <div className="font-row">
+        {FONTS.map((f) => (
+          <button
+            key={f.id}
+            className={`font-chip ${font === f.id ? "active" : ""}`}
+            style={{ fontFamily: fontCss(f), fontWeight: f.weight, fontSize: f.chip.size }}
+            onClick={() => onFont(f.id)}
+            aria-pressed={font === f.id}
+            aria-label={`Font: ${f.label}`}
+            title={f.label}
+          >
+            {f.chip.label}
+          </button>
+        ))}
+      </div>
+      {current?.note && <div className="font-note">{current.note}</div>}
+
+      <div className="deco-heading">COLOUR</div>
+      <div className="colour-row">
+        {TEXT_COLOURS.map((c) => (
+          <button
+            key={c.id}
+            className={`colour-swatch ${
+              colour.toLowerCase() === c.hex.toLowerCase() ? "active" : ""
+            }`}
+            style={{ background: c.hex }}
+            onClick={() => onColour(c.hex)}
+            aria-label={`${c.label} ${c.hex}`}
+            aria-pressed={colour.toLowerCase() === c.hex.toLowerCase()}
+            title={c.hex}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
 
 function Deco({ image, onBack }: DecoProps) {
+  const [items, setItems] = useState<Item[]>([]);
+  const itemsRef = useRef<Item[]>([]);
 
-    const [decorations, setDecorations] = useState<Decoration[]>([]);
-    const [selectedId, setSelectedId] = useState<string | null>(null);
-    const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [tab, setTab] = useState<"stickers" | "text">("stickers");
+  const [category, setCategory] = useState(STICKER_CATEGORIES[0]?.id ?? "");
+  const [textFont, setTextFont] = useState<FontId>(DEFAULT_FONT);
+  const [textColour, setTextColour] = useState<string>(DEFAULT_COLOUR);
 
-    const canvasRef = useRef<HTMLDivElement>(null);
+  // TikTok Sans loads asynchronously: redraw the word-art once it is ready
+  const [, setFontTick] = useState(0);
+  useEffect(() => {
+    ensureFonts().then((loaded) => {
+      if (loaded) setFontTick((t) => t + 1);
+    });
+  }, []);
+  const [popId, setPopId] = useState<string | null>(null);
 
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+  const pastRef = useRef<Item[][]>([]);
+  const futureRef = useRef<Item[][]>([]);
 
-    // =====================================================
-    // ADD TEXT
-    // =====================================================
-
-    const addText = () => {
-
-        const newText: Decoration = {
-            id: crypto.randomUUID(),
-
-            type: "text",
-
-            content: "Double tap to edit",
-
-            x: 100,
-            y: 100,
-
-            width: 180,
-            height: 60,
-
-            rotation: 0,
-        };
-
-        setDecorations((prev) => [
-            ...prev,
-            newText,
-        ]);
-
-        setSelectedId(newText.id);
+  // picture proportions (4-cut strips are tall and narrow, 6-cut ones are wider)
+  const [imgAspect, setImgAspect] = useState(0.43);
+  useEffect(() => {
+    let alive = true;
+    loadImage(image)
+      .then((img) => {
+        if (alive && img.naturalHeight > 0) {
+          setImgAspect(img.naturalWidth / img.naturalHeight);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
     };
-
-
-    // =====================================================
-    // ADD STICKER
-    // =====================================================
-
-    const addSticker = (sticker: string) => {
-
-        const newSticker: Decoration = {
-            id: crypto.randomUUID(),
-
-            type: "sticker",
-
-            content: sticker,
-
-            x: 100,
-            y: 100,
-
-            width: 70,
-            height: 70,
-
-            rotation: 0,
-        };
-
-        setDecorations((prev) => [
-            ...prev,
-            newSticker,
-        ]);
-
-        setSelectedId(newSticker.id);
-    };
-
-
-    // =====================================================
-    // POINTER INTERACTION
-    // =====================================================
-
-    const handlePointerDown = (
-        e: React.PointerEvent,
-        id: string,
-        action: Action
-    ) => {
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        setSelectedId(id);
-
-        const decoration = decorations.find(
-            (item) => item.id === id
-        );
-
-        if (!decoration) return;
-
-
-        const startX = e.clientX;
-        const startY = e.clientY;
-
-        const startWidth = decoration.width;
-        const startHeight = decoration.height;
-
-        const startPosX = decoration.x;
-        const startPosY = decoration.y;
-
-        const startRotation = decoration.rotation;
-
-
-        // -------------------------------------------------
-        // Find object center
-        // -------------------------------------------------
-
-        const element = (
-            e.currentTarget
-                .parentElement
-                ?.querySelector(".decoration-box")
-        ) as HTMLElement | null;
-
-        const rect =
-            element?.getBoundingClientRect();
-
-
-        const centerX = rect
-            ? rect.left + rect.width / 2
-            : startX;
-
-        const centerY = rect
-            ? rect.top + rect.height / 2
-            : startY;
-
-
-        const startAngle =
-            Math.atan2(
-                startY - centerY,
-                startX - centerX
-            ) *
-            (180 / Math.PI);
-
-
-        // -------------------------------------------------
-        // POINTER MOVE
-        // -------------------------------------------------
-
-        const handlePointerMove = (
-            moveEvent: PointerEvent
-        ) => {
-
-            const deltaX =
-                moveEvent.clientX - startX;
-
-            const deltaY =
-                moveEvent.clientY - startY;
-
-
-            setDecorations((prev) =>
-                prev.map((item) => {
-
-                    if (item.id !== id) {
-                        return item;
-                    }
-
-
-                    // =====================================
-                    // MOVE
-                    // =====================================
-
-                    if (action === "move") {
-
-                        return {
-                            ...item,
-
-                            x:
-                                startPosX +
-                                deltaX,
-
-                            y:
-                                startPosY +
-                                deltaY,
-                        };
-                    }
-
-
-                    // =====================================
-                    // RESIZE
-                    // =====================================
-
-                    if (action === "resize") {
-
-                        const newWidth =
-                            Math.max(
-                                40,
-                                startWidth +
-                                    deltaX
-                            );
-
-                        const newHeight =
-                            Math.max(
-                                30,
-                                startHeight +
-                                    deltaY
-                            );
-
-                        return {
-                            ...item,
-
-                            width: newWidth,
-                            height: newHeight,
-                        };
-                    }
-
-
-                    // =====================================
-                    // ROTATE
-                    // =====================================
-
-                    if (action === "rotate") {
-
-                        const currentAngle =
-                            Math.atan2(
-                                moveEvent.clientY -
-                                    centerY,
-
-                                moveEvent.clientX -
-                                    centerX
-                            ) *
-                            (180 / Math.PI);
-
-
-                        const rotationChange =
-                            currentAngle -
-                            startAngle;
-
-
-                        return {
-                            ...item,
-
-                            rotation:
-                                startRotation +
-                                rotationChange,
-                        };
-                    }
-
-
-                    return item;
-                })
-            );
-        };
-
-
-        // -------------------------------------------------
-        // POINTER UP
-        // -------------------------------------------------
-
-        const handlePointerUp = () => {
-
-            document.removeEventListener(
-                "pointermove",
-                handlePointerMove
-            );
-
-            document.removeEventListener(
-                "pointerup",
-                handlePointerUp
-            );
-        };
-
-
-        document.addEventListener(
-            "pointermove",
-            handlePointerMove
-        );
-
-        document.addEventListener(
-            "pointerup",
-            handlePointerUp
-        );
-    };
-
-
-    // =====================================================
-    // UPDATE TEXT
-    // =====================================================
-
-    const updateText = (
-        id: string,
-        text: string
-    ) => {
-
-        setDecorations((prev) =>
-            prev.map((item) =>
-                item.id === id
-                    ? {
-                        ...item,
-                        content: text,
-                    }
-                    : item
-            )
-        );
-    };
-
-
-    // =====================================================
-    // DELETE
-    // =====================================================
-
-    const deleteSelected = () => {
-
-        if (!selectedId) return;
-
-        setDecorations((prev) =>
-            prev.filter(
-                (item) =>
-                    item.id !== selectedId
-            )
-        );
-
-        setSelectedId(null);
-        setEditingId(null);
-    };
-
-
-    // =====================================================
-    // RESET
-    // =====================================================
-
-    const resetDecorations = () => {
-
-        setDecorations([]);
-
-        setSelectedId(null);
-
-        setEditingId(null);
-    };
-
-
-    // =====================================================
-    // RENDER
-    // =====================================================
-
-    return (
-
-        <div className="deco-page">
-
-
-            {/* =================================================
-                HEADER
-            ================================================= */}
-
-            <header className="deco-topbar">
-
-                <div className="deco-brand">
-                    ✦ PHOTOBOOTH.EXE
-                </div>
-
-                <div className="deco-title">
-                    PHOTO EDITOR 2000
-                </div>
-
-                <div className="deco-status">
-
-                    <span className="status-light">
-                        ●
-                    </span>
-
-                    DECORATING
-
-                </div>
-
-            </header>
-
-
-
-            {/* =================================================
-                MAIN
-            ================================================= */}
-
-            <main className="deco-workspace">
-
-
-                {/* =================================================
-                    LEFT PANEL
-                ================================================= */}
-
-                <aside className="deco-panel deco-left">
-
-                    <div className="panel-heading">
-                        ✦ DECORATE
-                    </div>
-
-
-                    {/* STICKERS */}
-
-                    <section className="deco-group">
-
-                        <div className="deco-heading">
-                            STICKERS
-                        </div>
-
-                        <div className="sticker-grid">
-
-                            {[
-                                "★",
-                                "♡",
-                                "✦",
-                                "☆",
-                                "☁",
-                                "☾",
-                                "✿",
-                                "☺",
-                            ].map((sticker) => (
-
-                                <button
-                                    key={sticker}
-                                    onClick={() =>
-                                        addSticker(
-                                            sticker
-                                        )
-                                    }
-                                >
-                                    {sticker}
-                                </button>
-
-                            ))}
-
-                        </div>
-
-                    </section>
-
-
-                    {/* TEXT */}
-
-                    <section className="deco-group">
-
-                        <div className="deco-heading">
-                            TEXT
-                        </div>
-
-                        <button
-                            className="add-text-button"
-                            onClick={addText}
-                        >
-                            ＋ ADD TEXT
-                        </button>
-
-                    </section>
-
-                </aside>
-
-
-
-                {/* =================================================
-                    CANVAS
-                ================================================= */}
-
-                <section className="deco-preview-area">
-
-                    <div
-                        className="canvas-area"
-                        ref={canvasRef}
-                        onPointerDown={() =>
-                            setSelectedId(null)
-                        }
-                    >
-
-                        {/* PHOTO */}
-
-                        <img
-                            src={image}
-                            className="final-photo"
-                            alt="Finished photobooth"
-                        />
-
-
-                        {/* DECORATIONS */}
-
-                        {decorations.map((item) => {
-
-                            const isSelected =
-                                selectedId ===
-                                item.id;
-
-                            const isEditing =
-                                editingId ===
-                                item.id;
-
-
-                            return (
-
-                                <div
-                                    key={item.id}
-
-                                    className={`textbox-wrapper ${
-                                        isSelected
-                                            ? "active"
-                                            : ""
-                                    }`}
-
-                                    style={{
-                                        transform:
-                                            `translate(${item.x}px, ${item.y}px) rotate(${item.rotation}deg)`,
-
-                                        width:
-                                            `${item.width}px`,
-
-                                        height:
-                                            `${item.height}px`,
-                                    }}
-
-                                    onPointerDown={(e) =>
-                                        e.stopPropagation()
-                                    }
-
-                                    onDoubleClick={() => {
-
-                                        if (
-                                            item.type ===
-                                            "text"
-                                        ) {
-                                            setEditingId(
-                                                item.id
-                                            );
-                                        }
-
-                                    }}
-                                >
-
-
-                                    {/* =================================
-                                        MOVE AREA
-                                    ================================= */}
-
-                                    <div
-                                        className="drag-handle"
-                                        onPointerDown={(e) =>
-                                            handlePointerDown(
-                                                e,
-                                                item.id,
-                                                "move"
-                                            )
-                                        }
-                                    />
-
-
-                                    {/* =================================
-                                        CONTENT
-                                    ================================= */}
-
-                                    {item.type ===
-                                    "text" ? (
-
-                                        isEditing ? (
-
-                                            <textarea
-                                                className="text-content editing"
-                                                value={
-                                                    item.content
-                                                }
-                                                autoFocus
-
-                                                onChange={(e) =>
-                                                    updateText(
-                                                        item.id,
-                                                        e.target
-                                                            .value
-                                                    )
-                                                }
-
-                                                onBlur={() =>
-                                                    setEditingId(
-                                                        null
-                                                    )
-                                                }
-
-                                                onKeyDown={(e) => {
-
-                                                    if (
-                                                        e.key ===
-                                                            "Enter" &&
-                                                        !e.shiftKey
-                                                    ) {
-
-                                                        e.preventDefault();
-
-                                                        setEditingId(
-                                                            null
-                                                        );
-                                                    }
-
-                                                    if (
-                                                        e.key ===
-                                                        "Escape"
-                                                    ) {
-
-                                                        setEditingId(
-                                                            null
-                                                        );
-                                                    }
-
-                                                }}
-
-                                                onPointerDown={(e) =>
-                                                    e.stopPropagation()
-                                                }
-                                            />
-
-                                        ) : (
-
-                                            <div className="text-content">
-
-                                                {
-                                                    item.content
-                                                }
-
-                                            </div>
-
-                                        )
-
-                                    ) : (
-
-                                        <div className="sticker-content">
-
-                                            {
-                                                item.content
-                                            }
-
-                                        </div>
-
-                                    )}
-
-
-                                    {/* =================================
-                                        CONTROLS
-                                    ================================= */}
-
-                                    {isSelected &&
-                                        !isEditing && (
-                                            <>
-
-                                                {/* ROTATE */}
-
-                                                <div
-                                                    className="control-rotate"
-                                                    onPointerDown={(e) =>
-                                                        handlePointerDown(
-                                                            e,
-                                                            item.id,
-                                                            "rotate"
-                                                        )
-                                                    }
-                                                >
-                                                    ↻
-                                                </div>
-
-
-                                                {/* RESIZE */}
-
-                                                <div
-                                                    className="control-resize"
-                                                    onPointerDown={(e) =>
-                                                        handlePointerDown(
-                                                            e,
-                                                            item.id,
-                                                            "resize"
-                                                        )
-                                                    }
-                                                />
-
-                                            </>
-                                        )}
-
-                                </div>
-                            );
-                        })}
-
-                    </div>
-
-                </section>
-
-
-
-                {/* =================================================
-                    RIGHT PANEL
-                ================================================= */}
-
-                <aside className="deco-panel deco-right">
-
-                    <div className="panel-heading">
-                        ✦ OBJECT
-                    </div>
-
-
-                    {selectedId ? (
-
-                        <>
-
-                            <div className="info-box">
-
-                                <span>
-                                    SELECTED
-                                </span>
-
-                                <strong>
-
-                                    {decorations.find(
-                                        (item) =>
-                                            item.id ===
-                                            selectedId
-                                    )?.type ===
-                                    "text"
-                                        ? "TEXT"
-                                        : "STICKER"}
-
-                                </strong>
-
-                            </div>
-
-
-                            <div className="object-help">
-
-                                <div>
-                                    ✦ DRAG TO MOVE
-                                </div>
-
-                                <div>
-                                    ✦ CORNER TO RESIZE
-                                </div>
-
-                                <div>
-                                    ✦ ↻ TO ROTATE
-                                </div>
-
-                                <div>
-                                    ✦ DOUBLE CLICK TEXT
-                                </div>
-
-                            </div>
-
-
-                            <button
-                                className="deco-action delete-action"
-                                onClick={
-                                    deleteSelected
-                                }
-                            >
-                                🗑 DELETE
-                            </button>
-
-                        </>
-
-                    ) : (
-
-                        <div className="tiny-note">
-
-                            ✦ SELECT A STICKER
-                            <br />
-
-                            ✦ OR ADD TEXT
-                            <br />
-
-                            ✦ DRAG TO MOVE
-                            <br />
-
-                            ✦ DOUBLE CLICK TEXT
-
-                        </div>
-
-                    )}
-
-                </aside>
-
-            </main>
-
-
-
-            {/* =================================================
-                FOOTER
-            ================================================= */}
-
-            <footer className="deco-footer">
-
-                <button
-                    className="deco-back-button"
-                    onClick={onBack}
-                >
-                    ◀ BACK
-                </button>
-
-
-                <div className="deco-history">
-
-                    <button>
-                        ↶ UNDO
-                    </button>
-
-                    <button>
-                        ↷ REDO
-                    </button>
-
-                    <button
-                        onClick={
-                            resetDecorations
-                        }
-                    >
-                        ↻ RESET
-                    </button>
-
-                </div>
-
-
-                <button className="deco-save-button">
-                    SAVE / PRINT ▶
-                </button>
-
-            </footer>
-
-        </div>
+  }, [image]);
+
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const stageRef = useRef<HTMLDivElement>(null);
+  const textInputRef = useRef<HTMLInputElement>(null);
+  const textSnapshotRef = useRef<Item[] | null>(null);
+
+  const selected = items.find((i) => i.id === selectedId) ?? null;
+
+  // ===================================================================
+  // STATE + HISTORY
+  // ===================================================================
+
+  /** replace the items (keeps the ref the pointer handlers read in sync) */
+  const setAll = (next: Item[]) => {
+    itemsRef.current = next;
+    setItems(next);
+  };
+
+  const syncFlags = () => {
+    setCanUndo(pastRef.current.length > 0);
+    setCanRedo(futureRef.current.length > 0);
+  };
+
+  /** remember `before` so UNDO can return to it */
+  const record = (before: Item[]) => {
+    pastRef.current.push(before);
+    if (pastRef.current.length > HISTORY_LIMIT) pastRef.current.shift();
+    futureRef.current = [];
+    syncFlags();
+  };
+
+  /** a one-step change that is undoable (add, delete, restyle ...) */
+  const change = (next: Item[]) => {
+    record(itemsRef.current);
+    setAll(next);
+  };
+
+  const undo = () => {
+    const prev = pastRef.current.pop();
+    if (!prev) return;
+    futureRef.current.push(itemsRef.current);
+    setAll(prev);
+    if (selectedId && !prev.some((i) => i.id === selectedId)) setSelectedId(null);
+    syncFlags();
+  };
+
+  const redo = () => {
+    const next = futureRef.current.pop();
+    if (!next) return;
+    pastRef.current.push(itemsRef.current);
+    setAll(next);
+    if (selectedId && !next.some((i) => i.id === selectedId)) setSelectedId(null);
+    syncFlags();
+  };
+
+  // ===================================================================
+  // ADD / EDIT / DELETE
+  // ===================================================================
+
+  const place = (item: Item) => {
+    change([...itemsRef.current, item]);
+    setSelectedId(item.id);
+    setPopId(item.id);
+    window.setTimeout(() => setPopId((p) => (p === item.id ? null : p)), 450);
+  };
+
+  // small random offset so repeated taps don't stack exactly
+  const spread = () => (Math.random() - 0.5) * 0.14;
+
+  const addSticker = (id: string) => {
+    place({
+      id: newId(),
+      kind: "sticker",
+      sticker: id,
+      cx: 0.5 + spread(),
+      cy: 0.45 + spread(),
+      // ~15% of the strip's HEIGHT for a typical sticker (a third of the width on a
+      // tall 4-cut strip), scaled by how big the artwork really is: keys come out
+      // small, tape and glasses come out wide
+      w: clamp((0.155 / imgAspect) * ((stickerArt(id).natW ?? 230) / 230), 0.1, 0.8),
+      rot: Math.round((Math.random() - 0.5) * 24),
+    });
+  };
+
+  const addText = (text: string) => {
+    const art = textArt(text, textFont, textColour);
+    place({
+      id: newId(),
+      kind: "text",
+      text,
+      font: textFont,
+      colour: textColour,
+      cx: 0.5 + spread(),
+      cy: 0.5 + spread(),
+      // about the same visual height whatever the word length
+      w: clamp(0.11 / art.aspect, 0.2, 0.9),
+      rot: Math.round((Math.random() - 0.5) * 12),
+    });
+  };
+
+  const patchSelected = (patch: Partial<Item>) => {
+    if (!selectedId) return;
+    change(
+      itemsRef.current.map((i) => (i.id === selectedId ? { ...i, ...patch } : i))
     );
+  };
+
+  const deleteSelected = () => {
+    if (!selectedId) return;
+    change(itemsRef.current.filter((i) => i.id !== selectedId));
+    setSelectedId(null);
+  };
+
+  const duplicateSelected = () => {
+    const src = itemsRef.current.find((i) => i.id === selectedId);
+    if (!src) return;
+    const copy: Item = {
+      ...src,
+      id: newId(),
+      cx: clamp(src.cx + 0.05, 0, 1),
+      cy: clamp(src.cy + 0.05, 0, 1),
+    };
+    place(copy);
+  };
+
+  const bringToFront = () => {
+    const src = itemsRef.current.find((i) => i.id === selectedId);
+    if (!src) return;
+    change([...itemsRef.current.filter((i) => i.id !== src.id), src]);
+  };
+
+  const clearAll = () => {
+    if (itemsRef.current.length === 0) return;
+    change([]); // undoable, so it is safe to press by accident
+    setSelectedId(null);
+  };
+
+  // text typed in the side panel updates live; undo covers the whole edit
+  const onTextFocus = () => {
+    textSnapshotRef.current = itemsRef.current;
+  };
+
+  const onTextChange = (value: string) => {
+    if (!selectedId) return;
+    setAll(
+      itemsRef.current.map((i) => (i.id === selectedId ? { ...i, text: value } : i))
+    );
+  };
+
+  const onTextBlur = () => {
+    const before = textSnapshotRef.current;
+    textSnapshotRef.current = null;
+    if (before && before !== itemsRef.current) record(before);
+  };
+
+  // ===================================================================
+  // DRAG: move anywhere on the item, or scale + rotate from the corner
+  // ===================================================================
+
+  const startDrag = (
+    e: ReactPointerEvent<HTMLElement>,
+    item: Item,
+    mode: "move" | "transform"
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    // finish any text edit first so it becomes its own undo step
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+
+    const rect = stage.getBoundingClientRect();
+    const el = e.currentTarget;
+    el.setPointerCapture(e.pointerId);
+    setSelectedId(item.id);
+
+    const before = itemsRef.current;
+    const start = { x: e.clientX, y: e.clientY, ...item };
+
+    // item centre on screen (for scale / rotate)
+    const cxPx = rect.left + item.cx * rect.width;
+    const cyPx = rect.top + item.cy * rect.height;
+    const startDist = Math.hypot(e.clientX - cxPx, e.clientY - cyPx) || 1;
+    const startAngle = Math.atan2(e.clientY - cyPx, e.clientX - cxPx);
+
+    let moved = false;
+
+    const onMove = (ev: PointerEvent) => {
+      moved = true;
+      let patch: Partial<Item>;
+
+      if (mode === "move") {
+        patch = {
+          cx: clamp(start.cx + (ev.clientX - start.x) / rect.width, 0, 1),
+          cy: clamp(start.cy + (ev.clientY - start.y) / rect.height, 0, 1),
+        };
+      } else {
+        const dist = Math.hypot(ev.clientX - cxPx, ev.clientY - cyPx);
+        const angle = Math.atan2(ev.clientY - cyPx, ev.clientX - cxPx);
+        patch = {
+          w: clamp((start.w * dist) / startDist, 0.06, 1.2),
+          rot: start.rot + ((angle - startAngle) * 180) / Math.PI,
+        };
+      }
+
+      setAll(
+        itemsRef.current.map((i) => (i.id === item.id ? { ...i, ...patch } : i))
+      );
+    };
+
+    const onUp = () => {
+      el.removeEventListener("pointermove", onMove as EventListener);
+      el.removeEventListener("pointerup", onUp);
+      el.removeEventListener("pointercancel", onUp);
+      if (moved) record(before); // the whole drag = one undo step
+    };
+
+    el.addEventListener("pointermove", onMove as EventListener);
+    el.addEventListener("pointerup", onUp);
+    el.addEventListener("pointercancel", onUp);
+  };
+
+  // ===================================================================
+  // KEYBOARD: Delete, Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z / Ctrl+Y, Esc
+  // ===================================================================
+
+  const keyHandler = useRef<(e: KeyboardEvent) => void>(() => {});
+  keyHandler.current = (e) => {
+    const typing =
+      e.target instanceof HTMLElement &&
+      (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA");
+    const mod = e.ctrlKey || e.metaKey;
+
+    if (mod && e.key.toLowerCase() === "z") {
+      if (typing) return; // let the text box undo its own typing
+      e.preventDefault();
+      if (e.shiftKey) redo();
+      else undo();
+    } else if (mod && e.key.toLowerCase() === "y") {
+      if (typing) return;
+      e.preventDefault();
+      redo();
+    } else if (!typing && (e.key === "Delete" || e.key === "Backspace")) {
+      e.preventDefault();
+      deleteSelected();
+    } else if (e.key === "Escape") {
+      setSelectedId(null);
+    }
+  };
+
+  useEffect(() => {
+    const fn = (e: KeyboardEvent) => keyHandler.current(e);
+    window.addEventListener("keydown", fn);
+    return () => window.removeEventListener("keydown", fn);
+  }, []);
+
+  // ===================================================================
+  // SAVE: draw the picture + every sticker onto a canvas, download a PNG
+  // ===================================================================
+
+  const save = async () => {
+    if (saving) return;
+    setSaving(true);
+
+    try {
+      const base = await loadImage(image);
+
+      // export at least ~1800px on the long side: stickers are vector, so
+      // they stay crisp even if the photo itself has to be scaled up
+      const longSide = Math.max(base.naturalWidth, base.naturalHeight);
+      const scale = Math.max(1, 1800 / longSide);
+      const W = Math.round(base.naturalWidth * scale);
+      const H = Math.round(base.naturalHeight * scale);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("no canvas");
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(base, 0, 0, W, H);
+
+      for (const item of itemsRef.current) {
+        const art = artFor(item);
+        const img = await loadImage(art.src);
+        const w = item.w * W;
+        const h = w * art.aspect;
+
+        ctx.save();
+        ctx.translate(item.cx * W, item.cy * H);
+        ctx.rotate((item.rot * Math.PI) / 180);
+        ctx.imageSmoothingEnabled = !art.pixel; // pixel art stays crisp
+        ctx.drawImage(img, -w / 2, -h / 2, w, h);
+        ctx.restore();
+      }
+
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/png")
+      );
+      if (!blob) throw new Error("could not create the image");
+
+      const d = new Date();
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const name = `photobooth-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(
+        d.getDate()
+      )}-${pad(d.getHours())}${pad(d.getMinutes())}.png`;
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 4000);
+
+      setToast("✦ SAVED TO YOUR DEVICE");
+    } catch (err) {
+      console.error("Save failed:", err);
+      setToast("COULD NOT SAVE, TRY AGAIN");
+    } finally {
+      setSaving(false);
+      window.setTimeout(() => setToast(null), 2600);
+    }
+  };
+
+  // position / size / rotation of an item as CSS (all relative to the picture)
+  const boxStyle = (item: Item) => ({
+    left: `${item.cx * 100}%`,
+    top: `${item.cy * 100}%`,
+    width: `${item.w * 100}%`,
+    aspectRatio: `${1 / artFor(item).aspect}`,
+    transform: `translate(-50%, -50%) rotate(${item.rot}deg)`,
+  });
+
+  const focusText = (item: Item) => {
+    if (item.kind !== "text") return;
+    textInputRef.current?.focus();
+    textInputRef.current?.select();
+  };
+
+  // ===================================================================
+  // RENDER
+  // ===================================================================
+
+  return (
+    <div className="deco-page">
+      <header className="deco-topbar">
+        <div className="deco-brand">✦ PHOTOBOOTH.EXE</div>
+        <div className="deco-title">PHOTO EDITOR 2000</div>
+        <div className="deco-status">
+          <span className="status-light">●</span>
+          DECORATING
+        </div>
+      </header>
+
+      <main className="deco-workspace">
+        {/* ================= LEFT: pick something ================= */}
+        <aside className="deco-panel deco-left">
+          <div className="panel-heading">✦ DECORATE</div>
+
+          <div className="deco-tabs" role="tablist">
+            <button
+              role="tab"
+              aria-selected={tab === "stickers"}
+              className={tab === "stickers" ? "active" : ""}
+              onClick={() => setTab("stickers")}
+            >
+              STICKERS
+            </button>
+            <button
+              role="tab"
+              aria-selected={tab === "text"}
+              className={tab === "text" ? "active" : ""}
+              onClick={() => setTab("text")}
+            >
+              TEXT
+            </button>
+          </div>
+
+          {tab === "stickers" ? (
+            <>
+              <div className="cat-row" role="tablist" aria-label="Sticker categories">
+                {STICKER_CATEGORIES.map((c) => (
+                  <button
+                    key={c.id}
+                    role="tab"
+                    aria-selected={category === c.id}
+                    className={`cat-chip ${category === c.id ? "active" : ""}`}
+                    onClick={() => setCategory(c.id)}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+
+              <div
+                className={`sticker-grid ${category === "keys" ? "cols-4" : ""}`}
+              >
+                {stickersIn(category).map((s) => (
+                  <button
+                    key={s.id}
+                    title={s.label}
+                    aria-label={`Add ${s.label}`}
+                    onClick={() => addSticker(s.id)}
+                  >
+                    <img
+                      src={s.src}
+                      alt=""
+                      draggable={false}
+                      loading="lazy"
+                      style={s.pixel ? { imageRendering: "pixelated" } : undefined}
+                    />
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <TextLook
+                font={textFont}
+                colour={textColour}
+                onFont={setTextFont}
+                onColour={setTextColour}
+              />
+
+              <div className="deco-heading">TAP TO ADD</div>
+              <div className="text-preset-grid">
+                {TEXT_PRESETS.map((t) => (
+                  <button key={t} onClick={() => addText(t)}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                className="add-text-button"
+                onClick={() => {
+                  addText("your text");
+                  window.setTimeout(() => {
+                    textInputRef.current?.focus();
+                    textInputRef.current?.select();
+                  }, 60);
+                }}
+              >
+                ＋ CUSTOM TEXT
+              </button>
+            </>
+          )}
+        </aside>
+
+        {/* ================= CENTER: the picture ================= */}
+        {/* tapping empty space (around OR on the picture) deselects */}
+        <section
+          className="deco-preview-area"
+          onPointerDown={() => setSelectedId(null)}
+        >
+          <div className="deco-stage" ref={stageRef}>
+            <img
+              src={image}
+              className="final-photo"
+              alt="Your photobooth strip"
+              draggable={false}
+            />
+
+            {/* stickers are clipped to the picture, exactly like the saved PNG */}
+            <div
+              className="deco-layer"
+              onScroll={(e) => {
+                // never allow the sticker layer to drift (see deco.css)
+                e.currentTarget.scrollLeft = 0;
+                e.currentTarget.scrollTop = 0;
+              }}
+            >
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  className={`deco-item ${item.id === selectedId ? "active" : ""} ${
+                    popId === item.id ? "pop" : ""
+                  }`}
+                  style={boxStyle(item)}
+                  onPointerDown={(e) => startDrag(e, item, "move")}
+                  onDoubleClick={() => focusText(item)}
+                >
+                  {(() => {
+                    const art = artFor(item);
+                    return (
+                      <img
+                        src={art.src}
+                        alt=""
+                        draggable={false}
+                        style={art.pixel ? { imageRendering: "pixelated" } : undefined}
+                      />
+                    );
+                  })()}
+                </div>
+              ))}
+            </div>
+
+            {/* selection outline + handles live OUTSIDE the clip, so a sticker
+                near the edge can always be grabbed, resized or deleted */}
+            {selected && (
+              <div
+                className="deco-chrome"
+                style={boxStyle(selected)}
+                onPointerDown={(e) => startDrag(e, selected, "move")}
+                onDoubleClick={() => focusText(selected)}
+              >
+                <button
+                  className="deco-handle handle-delete"
+                  aria-label="Delete"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={deleteSelected}
+                >
+                  ✕
+                </button>
+                <div
+                  className="deco-handle handle-transform"
+                  aria-label="Drag to resize and rotate"
+                  onPointerDown={(e) => startDrag(e, selected, "transform")}
+                />
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* ================= RIGHT: only what you need ================= */}
+        <aside className="deco-panel deco-right">
+          <div className="panel-heading">✦ OBJECT</div>
+
+          {selected ? (
+            <>
+              {selected.kind === "text" && (
+                <>
+                  <div className="deco-heading">TEXT</div>
+                  <input
+                    ref={textInputRef}
+                    className="deco-text-input"
+                    value={selected.text ?? ""}
+                    maxLength={24}
+                    onFocus={onTextFocus}
+                    onChange={(e) => onTextChange(e.target.value)}
+                    onBlur={onTextBlur}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") e.currentTarget.blur();
+                    }}
+                  />
+
+                  <TextLook
+                    font={selected.font ?? DEFAULT_FONT}
+                    colour={selected.colour ?? DEFAULT_COLOUR}
+                    onFont={(f) => patchSelected({ font: f })}
+                    onColour={(hex) => patchSelected({ colour: hex })}
+                  />
+                </>
+              )}
+
+              <div className="object-actions">
+                <button className="deco-action" onClick={bringToFront}>
+                  ⇧ TO FRONT
+                </button>
+                <button className="deco-action" onClick={duplicateSelected}>
+                  ⧉ COPY
+                </button>
+                <button className="deco-action delete-action" onClick={deleteSelected}>
+                  ✕ DELETE
+                </button>
+              </div>
+
+              <div className="tiny-note">
+                ✦ DRAG TO MOVE
+                <br />
+                ✦ DRAG THE CORNER TO
+                <br />
+                &nbsp;&nbsp;RESIZE + ROTATE
+              </div>
+            </>
+          ) : (
+            <div className="tiny-note">
+              ✦ TAP A STICKER TO ADD IT
+              <br />
+              ✦ DRAG IT WHERE YOU LIKE
+              <br />
+              ✦ TAP IT TO EDIT
+              <br />
+              ✦ SAVE WHEN YOU LOVE IT
+            </div>
+          )}
+        </aside>
+      </main>
+
+      <footer className="deco-footer">
+        <button className="deco-back-button" onClick={onBack}>
+          ◀ BACK
+        </button>
+
+        <div className="deco-history">
+          <button onClick={undo} disabled={!canUndo}>
+            ↶ UNDO
+          </button>
+          <button onClick={redo} disabled={!canRedo}>
+            ↷ REDO
+          </button>
+          <button onClick={clearAll} disabled={items.length === 0}>
+            ↻ CLEAR
+          </button>
+        </div>
+
+        <button className="deco-save-button" onClick={save} disabled={saving}>
+          {saving ? "SAVING..." : "SAVE PNG ▶"}
+        </button>
+      </footer>
+
+      {toast && <div className="deco-toast">{toast}</div>}
+    </div>
+  );
 }
 
 export default Deco;
