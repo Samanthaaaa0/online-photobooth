@@ -1,9 +1,4 @@
 // handGestures.ts
-// One gesture only: POINT (index finger out, other fingers folded) = draw.
-//
-// There is deliberately no pinch / palm / peace gesture any more: pinch used to "move the
-// drawing" and kept firing by accident while drawing, so it was removed. Fewer gestures =
-// nothing to trigger by mistake.
 
 export type Pose = "none" | "point";
 
@@ -18,9 +13,6 @@ export interface HandReading {
   indexTip: LM;    // normalised 0..1
 }
 
-// A finger counts as "out" when its tip is this much farther from the wrist than its middle
-// knuckle. The index must be clearly out, the other three only need to be NOT clearly out,
-// so a relaxed, slightly curled hand still counts as pointing.
 const INDEX_OUT = 1.15;
 const OTHERS_FOLDED = 1.22;
 

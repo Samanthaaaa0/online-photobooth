@@ -5,25 +5,38 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite",
+    "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@mediapipe/tasks-vision": "^1.0.1",
+    "@mediapipe/tasks-vision": "^1.2.3",
     "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "styled-components": "^6.5.2"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "styled-components": "^6.6.0"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.2.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
     "oxlint": "^1.75.0",
     "typescript": "~6.0.2",
-    "vite": "^8.3.5"
-  }
+    "vite": "^8.3.8"
+  },
+  "description": "in case `npm run dev` not working again",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Samanthaaaa0/online-photobooth.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Samanthaaaa0/online-photobooth/issues"
+  },
+  "homepage": "https://github.com/Samanthaaaa0/online-photobooth#readme"
 }
