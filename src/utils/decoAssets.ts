@@ -147,14 +147,13 @@ export const fontCss = (f: FontChoice) => `"${f.family}", "Deco TikTok Sans", sa
 // ---------------------------------------------------------------------
 
 export const TEXT_PRESETS = [
-  "bestie",
-  "y2k",
+  "2000",
+  "<33",
   "xoxo",
-  "cutie",
-  "2003",
-  "photobooth",
-  "angel",
-  "only u",
+  "hmmmmm",
+  "baddie",
+  "67",
+  "cvnt",
 ];
 
 const textCache = new Map<string, Art>();
