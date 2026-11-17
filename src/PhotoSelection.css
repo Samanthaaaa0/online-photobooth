@@ -11,9 +11,10 @@
   flex-direction: column;
   overflow: hidden;
 
-  background-color: #d8d8dc;
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.12) 2px, transparent 2px);
-  background-size: 18px 18px;
+  background-color: #cfe9ee;
+  background-image: linear-gradient(rgba(232, 246, 250, 0.5), rgba(232, 246, 250, 0.5)), url("./assets/windowbg.png");
+  background-size: cover;
+  background-position: center;
   color: var(--chrome-900, #201f23);
 }
 

@@ -11,16 +11,10 @@
 
     overflow: hidden;
 
-    background:
-        radial-gradient(
-            circle,
-            rgba(255, 255, 255, 0.12) 2px,
-            transparent 2px
-        );
-
-    background-size: 18px 18px;
-
-    background-color: #d8d8dc;
+    background-color: #cfe9ee;
+    background-image: linear-gradient(rgba(232, 246, 250, 0.5), rgba(232, 246, 250, 0.5)), url("./assets/windowbg.png");
+    background-size: cover;
+    background-position: center;
 
     color: var(--chrome-900);
 }
@@ -96,14 +90,13 @@
 
     display: grid;
 
-    grid-template-columns:
-        210px
-        minmax(0, 1fr)
-        210px;
+    /* the picture is centred on the WHOLE page; the tool panel floats on the left */
+    position: relative;
+    --dp-w: 210px;
+    --dp-gap: 16px;
+    grid-template-columns: minmax(0, 1fr);
 
-    gap: 16px;
-
-    padding: 16px;
+    padding: var(--dp-gap);
 
     overflow: hidden;
 }
@@ -424,7 +417,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    /* equal space left and right (room for the floating panel) so the picture sits dead centre */
+    padding: 20px calc(var(--dp-w) + var(--dp-gap) * 2);
     overflow: hidden;
     overflow: clip; /* same reason: never let the picture get scrolled away */
     container-type: size;
@@ -545,31 +539,34 @@
 }
 
 /* =========================================================
-   RIGHT PANEL
+   INLINE TEXT EDIT (double-click a word)
 ========================================================= */
 
-.deco-text-input {
+.handle-copy {
+    top: -16px;
+    right: -16px;
+    color: #0b4d46;
+    border-color: var(--turq-600);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.deco-item.editing { visibility: hidden; }
+
+.deco-inline-input {
+    position: absolute;
+    inset: 0;
     width: 100%;
+    height: 100%;
     box-sizing: border-box;
-    margin-bottom: 14px;
-    padding: 9px 8px;
-    font-family: var(--display-font);
-    font-size: 17px;
-    background: #ffffff;
-    border: 2px solid #777;
-    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-.deco-text-input:focus {
-    outline: 2px solid var(--turq-500);
-    outline-offset: 1px;
-}
-
-.object-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin: 4px 0 18px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    text-align: center;
+    line-height: 1;
+    caret-color: #272727;
 }
 
 /* =========================================================
@@ -667,12 +664,8 @@
 }
 
 .deco-workspace {
-    grid-template-columns:
-        clamp(170px, 14.5vw, 225px)
-        minmax(0, 1fr)
-        clamp(170px, 14.5vw, 225px);
-    gap: clamp(8px, 1.2vw, 16px);
-    padding: clamp(8px, 1.2vw, 16px);
+    --dp-w: clamp(190px, 16vw, 250px);
+    --dp-gap: clamp(8px, 1.2vw, 16px);
 }
 
 /* short laptop screens: slimmer bars so the picture keeps its room */
@@ -683,10 +676,7 @@
 
 @media (max-width: 1100px) {
     .deco-workspace {
-        grid-template-columns:
-            clamp(165px, 19vw, 200px)
-            minmax(0, 1fr)
-            clamp(150px, 17vw, 180px);
+        --dp-w: clamp(170px, 22vw, 210px);
     }
 
     .deco-title { font-size: 15px; }
@@ -695,14 +685,13 @@
 @media (max-width: 900px), ((max-aspect-ratio: 1 / 1) and (max-width: 1100px)) {
     .deco-workspace {
         grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: minmax(0, 1fr) auto auto;
+        grid-template-rows: minmax(0, 1fr) auto;
         gap: 8px;
         padding: 8px;
     }
 
     .deco-preview-area { order: 1; padding: 8px; }
-    .deco-right        { order: 2; }
-    .deco-left         { order: 3; }
+    .deco-left         { order: 2; }
 
     /* sticker tray */
     .deco-left {
@@ -723,65 +712,6 @@
     }
 
     .deco-left .font-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-
-    /* object bar: only there while something is selected, compact, in rows */
-    .deco-right:not(:has(.object-actions)) { display: none; }
-
-    .deco-right {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 6px 8px;
-        padding: 8px 10px;
-        overflow: visible;
-    }
-
-    .deco-right .panel-heading,
-    .deco-right .tiny-note,
-    .deco-right .deco-heading,
-    .deco-right .font-note { display: none; }
-
-    /* three tight rows: the text box, the four fonts, then the colours next to the buttons */
-    .deco-right .deco-text-input {
-        flex: 1 1 100%;
-        margin: 0;
-        padding: 6px 8px;
-        font-size: 15px;
-    }
-
-    .deco-right .font-row {
-        flex: 1 1 100%;
-        margin: 0;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    .deco-right .font-chip { min-height: 30px; padding: 3px 2px; font-size: 12px !important; }
-
-    .deco-right .colour-row {
-        flex: 0 0 auto;
-        gap: 6px;
-        margin: 0;
-    }
-
-    .deco-right .colour-swatch { width: 24px; height: 24px; }
-
-    .deco-right .object-actions {
-        flex: 1 1 0;
-        min-width: 0;
-        flex-direction: row;
-        gap: 4px;
-        margin: 0;
-    }
-
-    .deco-right .object-actions .deco-action {
-        flex: 1 1 0;
-        min-width: 0;
-        padding: 6px 2px;
-        font-size: 9px;
-        letter-spacing: 0;
-        white-space: nowrap;
-        overflow: hidden;
-    }
 }
 
 @media (max-width: 600px) {
@@ -877,4 +807,27 @@
 .colour-swatch.active {
     outline: 3px solid var(--turq-500);
     outline-offset: 2px;
+}
+
+/* floating tool panel (wide screens) */
+.deco-left {
+    position: absolute;
+    z-index: 2;
+    left: var(--dp-gap);
+    top: var(--dp-gap);
+    bottom: var(--dp-gap);
+    width: var(--dp-w);
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.colour-row { gap: 6px; }
+.colour-swatch { width: 26px; height: 26px; }
+
+@media (max-width: 900px), ((max-aspect-ratio: 1 / 1) and (max-width: 1100px)) {
+    .deco-left {
+        position: static;
+        width: auto;
+    }
+    .deco-workspace { gap: 8px; }
 }

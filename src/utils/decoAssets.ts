@@ -18,6 +18,7 @@ export interface Art {
   aspect: number;  // height / width
   pixel?: boolean; // pixel art: scale with hard edges, never smoothed
   natW?: number;   // original width in px (used to give new stickers a sensible size)
+  em?: number;     // text only: the font size as a fraction of the picture's height (for the edit box)
 }
 
 // ---------------------------------------------------------------------
@@ -146,13 +147,14 @@ export const fontCss = (f: FontChoice) => `"${f.family}", "Deco TikTok Sans", sa
 // ---------------------------------------------------------------------
 
 export const TEXT_PRESETS = [
-  "<33",
-  "2000",
+  "bestie",
+  "y2k",
   "xoxo",
-  "baddie",
-  "67",
-  "c<3nt",
-  "404",
+  "cutie",
+  "2003",
+  "photobooth",
+  "angel",
+  "only u",
 ];
 
 const textCache = new Map<string, Art>();
@@ -200,7 +202,7 @@ export function textArt(rawText: string, fontId: FontId, colour: string): Art {
   ctx.fillStyle = colour;
   ctx.fillText(text, pad + left, pad + asc); // plain fill: no stroke, no shadow, no gloss
 
-  const art: Art = { src: canvas.toDataURL("image/png"), aspect: h / w };
+  const art: Art = { src: canvas.toDataURL("image/png"), aspect: h / w, em: fs / h };
   textCache.set(key, art);
   return art;
 }

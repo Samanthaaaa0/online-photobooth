@@ -30,7 +30,7 @@ function CameraPage({ onComplete }: CameraPageProps) {
 
   // ---- settings ----
   const [timer, setTimer] = useState(0);
-  const [vibe, setVibe] = useState("black");
+  const [vibe, setVibe] = useState("sky");
 
   // ---- the session ----
   const [photos, setPhotos] = useState<string[]>([]);
@@ -330,7 +330,7 @@ function CameraPage({ onComplete }: CameraPageProps) {
               <div className="settings-label">BACKGROUND</div>
 
               <div className="vibe-options">
-                {(["pink", "blue", "white", "black"] as const).map((v) => (
+                {(["sky", "pink", "white", "black"] as const).map((v) => (
                   <button
                     key={v}
                     className={`vibe-swatch ${v} ${vibe === v ? "selected" : ""}`}

@@ -131,6 +131,12 @@ function Deco({ image, onBack }: DecoProps) {
   }, []);
   const [popId, setPopId] = useState<string | null>(null);
 
+  // inline text editing: double-click (or double-tap) a word on the picture
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const editingRef = useRef<string | null>(null);
+  const editBeforeRef = useRef<Item[] | null>(null);
+  const lastTapRef = useRef<{ id: string; t: number } | null>(null);
+
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const pastRef = useRef<Item[][]>([]);
@@ -156,10 +162,9 @@ function Deco({ image, onBack }: DecoProps) {
   const [toast, setToast] = useState<string | null>(null);
 
   const stageRef = useRef<HTMLDivElement>(null);
-  const textInputRef = useRef<HTMLInputElement>(null);
-  const textSnapshotRef = useRef<Item[] | null>(null);
 
   const selected = items.find((i) => i.id === selectedId) ?? null;
+  const textTarget = selected && selected.kind === "text" ? selected : null;
 
   // ===================================================================
   // STATE + HISTORY
@@ -237,10 +242,11 @@ function Deco({ image, onBack }: DecoProps) {
     });
   };
 
-  const addText = (text: string) => {
+  const addText = (text: string): string => {
     const art = textArt(text, textFont, textColour);
+    const id = newId();
     place({
-      id: newId(),
+      id,
       kind: "text",
       text,
       font: textFont,
@@ -251,13 +257,7 @@ function Deco({ image, onBack }: DecoProps) {
       w: clamp(0.11 / art.aspect, 0.2, 0.9),
       rot: Math.round((Math.random() - 0.5) * 12),
     });
-  };
-
-  const patchSelected = (patch: Partial<Item>) => {
-    if (!selectedId) return;
-    change(
-      itemsRef.current.map((i) => (i.id === selectedId ? { ...i, ...patch } : i))
-    );
+    return id;
   };
 
   const deleteSelected = () => {
@@ -278,34 +278,74 @@ function Deco({ image, onBack }: DecoProps) {
     place(copy);
   };
 
-  const bringToFront = () => {
-    const src = itemsRef.current.find((i) => i.id === selectedId);
-    if (!src) return;
-    change([...itemsRef.current.filter((i) => i.id !== src.id), src]);
-  };
-
   const clearAll = () => {
     if (itemsRef.current.length === 0) return;
     change([]); // undoable, so it is safe to press by accident
     setSelectedId(null);
   };
 
-  // text typed in the side panel updates live; undo covers the whole edit
-  const onTextFocus = () => {
-    textSnapshotRef.current = itemsRef.current;
+  // ===================================================================
+  // INLINE TEXT EDITING (double-click a word on the picture)
+  // ===================================================================
+
+  /** change a word's text / font / colour and keep its letters the same height */
+  const withSameHeight = (item: Item, patch: Partial<Item>): Item => {
+    const next = { ...item, ...patch };
+    if ((next.text ?? "").trim() === "") return next; // nothing to measure: keep the width
+    const before = artFor(item).aspect;
+    const after = artFor(next).aspect;
+    return { ...next, w: clamp((item.w * before) / after, 0.06, 1.2) };
   };
 
-  const onTextChange = (value: string) => {
+  /** font / colour from the left panel: applies to the selected word (undoable) */
+  const restyleSelected = (patch: Partial<Item>) => {
     if (!selectedId) return;
-    setAll(
-      itemsRef.current.map((i) => (i.id === selectedId ? { ...i, text: value } : i))
+    change(
+      itemsRef.current.map((i) => (i.id === selectedId ? withSameHeight(i, patch) : i))
     );
   };
 
-  const onTextBlur = () => {
-    const before = textSnapshotRef.current;
-    textSnapshotRef.current = null;
-    if (before && before !== itemsRef.current) record(before);
+  const beginEdit = (id: string) => {
+    const it = itemsRef.current.find((i) => i.id === id);
+    if (!it || it.kind !== "text" || editingRef.current) return;
+    editBeforeRef.current = itemsRef.current;
+    editingRef.current = id;
+    setSelectedId(id);
+    setEditingId(id);
+    setTab("text");
+  };
+
+  const onEditChange = (value: string) => {
+    const id = editingRef.current;
+    if (!id) return;
+    setAll(
+      itemsRef.current.map((i) => (i.id === id ? withSameHeight(i, { text: value }) : i))
+    );
+  };
+
+  /** Enter / click away = keep. Esc = put the old text back. An empty word is removed. */
+  const endEdit = (cancel = false) => {
+    const id = editingRef.current;
+    if (!id) return;
+    editingRef.current = null;
+    setEditingId(null);
+
+    const before = editBeforeRef.current;
+    editBeforeRef.current = null;
+    if (!before) return;
+
+    if (cancel) {
+      setAll(before);
+      return;
+    }
+    const it = itemsRef.current.find((i) => i.id === id);
+    if (it && (it.text ?? "").trim() === "") {
+      record(before);
+      setAll(itemsRef.current.filter((i) => i.id !== id));
+      setSelectedId(null);
+    } else if (before !== itemsRef.current) {
+      record(before); // the whole edit = one undo step
+    }
   };
 
   // ===================================================================
@@ -324,12 +364,14 @@ function Deco({ image, onBack }: DecoProps) {
     if (!stage) return;
 
     // finish any text edit first so it becomes its own undo step
+    endEdit();
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
 
     const rect = stage.getBoundingClientRect();
     const el = e.currentTarget;
     el.setPointerCapture(e.pointerId);
     setSelectedId(item.id);
+    if (item.kind === "text") setTab("text");
 
     const before = itemsRef.current;
     const start = { x: e.clientX, y: e.clientY, ...item };
@@ -369,7 +411,20 @@ function Deco({ image, onBack }: DecoProps) {
       el.removeEventListener("pointermove", onMove as EventListener);
       el.removeEventListener("pointerup", onUp);
       el.removeEventListener("pointercancel", onUp);
-      if (moved) record(before); // the whole drag = one undo step
+      if (moved) {
+        record(before); // the whole drag = one undo step
+        lastTapRef.current = null;
+      } else if (mode === "move" && item.kind === "text") {
+        // two quick taps on the same word (mouse or finger) = edit it
+        const now = performance.now();
+        const last = lastTapRef.current;
+        if (last && last.id === item.id && now - last.t < 380) {
+          lastTapRef.current = null;
+          beginEdit(item.id);
+        } else {
+          lastTapRef.current = { id: item.id, t: now };
+        }
+      }
     };
 
     el.addEventListener("pointermove", onMove as EventListener);
@@ -401,6 +456,7 @@ function Deco({ image, onBack }: DecoProps) {
       e.preventDefault();
       deleteSelected();
     } else if (e.key === "Escape") {
+      if (editingRef.current) return; // the edit box handles it
       setSelectedId(null);
     }
   };
@@ -492,12 +548,6 @@ function Deco({ image, onBack }: DecoProps) {
     transform: `translate(-50%, -50%) rotate(${item.rot}deg)`,
   });
 
-  const focusText = (item: Item) => {
-    if (item.kind !== "text") return;
-    textInputRef.current?.focus();
-    textInputRef.current?.select();
-  };
-
   // ===================================================================
   // RENDER
   // ===================================================================
@@ -576,11 +626,23 @@ function Deco({ image, onBack }: DecoProps) {
             </>
           ) : (
             <>
+              <div className="font-note edit-hint">
+                {textTarget
+                  ? "Font and colour change the selected word. Double-click it to edit the letters."
+                  : "Pick a font and colour, then tap a word to add it. Double-click a word on the picture to edit it."}
+              </div>
+
               <TextLook
-                font={textFont}
-                colour={textColour}
-                onFont={setTextFont}
-                onColour={setTextColour}
+                font={textTarget?.font ?? textFont}
+                colour={textTarget?.colour ?? textColour}
+                onFont={(f) => {
+                  setTextFont(f);
+                  if (textTarget) restyleSelected({ font: f });
+                }}
+                onColour={(hex) => {
+                  setTextColour(hex);
+                  if (textTarget) restyleSelected({ colour: hex });
+                }}
               />
 
               <div className="deco-heading">TAP TO ADD</div>
@@ -595,11 +657,8 @@ function Deco({ image, onBack }: DecoProps) {
               <button
                 className="add-text-button"
                 onClick={() => {
-                  addText("your text");
-                  window.setTimeout(() => {
-                    textInputRef.current?.focus();
-                    textInputRef.current?.select();
-                  }, 60);
+                  const id = addText("your text");
+                  window.setTimeout(() => beginEdit(id), 80); // type straight onto the picture
                 }}
               >
                 ＋ CUSTOM TEXT
@@ -612,7 +671,10 @@ function Deco({ image, onBack }: DecoProps) {
         {/* tapping empty space (around OR on the picture) deselects */}
         <section
           className="deco-preview-area"
-          onPointerDown={() => setSelectedId(null)}
+          onPointerDown={() => {
+            endEdit();
+            setSelectedId(null);
+          }}
         >
           <div className="deco-stage" ref={stageRef}>
             <img
@@ -636,10 +698,9 @@ function Deco({ image, onBack }: DecoProps) {
                   key={item.id}
                   className={`deco-item ${item.id === selectedId ? "active" : ""} ${
                     popId === item.id ? "pop" : ""
-                  }`}
+                  } ${item.id === editingId ? "editing" : ""}`}
                   style={boxStyle(item)}
                   onPointerDown={(e) => startDrag(e, item, "move")}
-                  onDoubleClick={() => focusText(item)}
                 >
                   {(() => {
                     const art = artFor(item);
@@ -662,90 +723,78 @@ function Deco({ image, onBack }: DecoProps) {
               <div
                 className="deco-chrome"
                 style={boxStyle(selected)}
-                onPointerDown={(e) => startDrag(e, selected, "move")}
-                onDoubleClick={() => focusText(selected)}
+                onPointerDown={(e) => {
+                  if (editingId === selected.id) e.stopPropagation(); // the edit box needs the click
+                  else startDrag(e, selected, "move");
+                }}
               >
-                <button
-                  className="deco-handle handle-delete"
-                  aria-label="Delete"
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={deleteSelected}
-                >
-                  ✕
-                </button>
-                <div
-                  className="deco-handle handle-transform"
-                  aria-label="Drag to resize and rotate"
-                  onPointerDown={(e) => startDrag(e, selected, "transform")}
-                />
+                {editingId === selected.id ? (
+                  <input
+                    className="deco-inline-input"
+                    autoFocus
+                    value={selected.text ?? ""}
+                    maxLength={24}
+                    spellCheck={false}
+                    aria-label="Edit text"
+                    style={{
+                      fontFamily: fontCss(FONTS.find((f) => f.id === selected.font) ?? FONTS[0]),
+                      fontWeight: FONTS.find((f) => f.id === selected.font)?.weight,
+                      textTransform: FONTS.find((f) => f.id === selected.font)?.lowercaseOnly
+                        ? "lowercase"
+                        : "none",
+                      color: selected.colour ?? DEFAULT_COLOUR,
+                      // letters as big as the picture of them
+                      fontSize: `${
+                        (artFor(selected).em ?? 0.8) *
+                        (stageRef.current?.clientWidth ?? 300) *
+                        selected.w *
+                        artFor(selected).aspect
+                      }px`,
+                    }}
+                    onFocus={(e) => e.currentTarget.select()}
+                    onChange={(e) => onEditChange(e.target.value)}
+                    onBlur={() => endEdit()}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") endEdit();
+                      else if (e.key === "Escape") {
+                        e.stopPropagation();
+                        endEdit(true);
+                      }
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                  />
+                ) : (
+                  <>
+                    <button
+                      className="deco-handle handle-delete"
+                      aria-label="Delete"
+                      title="Delete"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={deleteSelected}
+                    >
+                      ✕
+                    </button>
+                    <button
+                      className="deco-handle handle-copy"
+                      aria-label="Copy"
+                      title="Copy"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={duplicateSelected}
+                    >
+                      ⧉
+                    </button>
+                    <div
+                      className="deco-handle handle-transform"
+                      aria-label="Drag to resize and rotate"
+                      onPointerDown={(e) => startDrag(e, selected, "transform")}
+                    />
+                  </>
+                )}
               </div>
             )}
           </div>
         </section>
 
-        {/* ================= RIGHT: only what you need ================= */}
-        <aside className="deco-panel deco-right">
-          <div className="panel-heading">✦ OBJECT</div>
-
-          {selected ? (
-            <>
-              {selected.kind === "text" && (
-                <>
-                  <div className="deco-heading">TEXT</div>
-                  <input
-                    ref={textInputRef}
-                    className="deco-text-input"
-                    value={selected.text ?? ""}
-                    maxLength={24}
-                    onFocus={onTextFocus}
-                    onChange={(e) => onTextChange(e.target.value)}
-                    onBlur={onTextBlur}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") e.currentTarget.blur();
-                    }}
-                  />
-
-                  <TextLook
-                    font={selected.font ?? DEFAULT_FONT}
-                    colour={selected.colour ?? DEFAULT_COLOUR}
-                    onFont={(f) => patchSelected({ font: f })}
-                    onColour={(hex) => patchSelected({ colour: hex })}
-                  />
-                </>
-              )}
-
-              <div className="object-actions">
-                <button className="deco-action" onClick={bringToFront}>
-                  ⇧ TO FRONT
-                </button>
-                <button className="deco-action" onClick={duplicateSelected}>
-                  ⧉ COPY
-                </button>
-                <button className="deco-action delete-action" onClick={deleteSelected}>
-                  ✕ DELETE
-                </button>
-              </div>
-
-              <div className="tiny-note">
-                ✦ DRAG TO MOVE
-                <br />
-                ✦ DRAG THE CORNER TO
-                <br />
-                &nbsp;&nbsp;RESIZE + ROTATE
-              </div>
-            </>
-          ) : (
-            <div className="tiny-note">
-              ✦ TAP A STICKER TO ADD IT
-              <br />
-              ✦ DRAG IT WHERE YOU LIKE
-              <br />
-              ✦ TAP IT TO EDIT
-              <br />
-              ✦ SAVE WHEN YOU LOVE IT
-            </div>
-          )}
-        </aside>
       </main>
 
       <footer className="deco-footer">

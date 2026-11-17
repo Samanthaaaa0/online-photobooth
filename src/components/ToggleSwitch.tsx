@@ -13,7 +13,7 @@ const Checkbox = styled.input`
   height: 0;
 
   &:checked + span {
-    background-color: #ff8fd8;
+    background-color: #ff1694;
   }
 
   &:checked + span::before {

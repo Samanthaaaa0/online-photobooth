@@ -51,21 +51,20 @@
   gap: 12px;
   padding: 0 clamp(12px, 2vw, 22px);
 
-  background: linear-gradient(#2a2a2e, #19191c);
-  border-bottom: 1px solid #45454c;
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.07);
+  background: linear-gradient(180deg, #ffffff 0%, #d8d8dc 45%, #a9a9ae 100%);
+  border-bottom: 2px solid #7d8288;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
 
   font-family: monospace;
   font-size: 10px;
   font-weight: bold;
   letter-spacing: 2.5px;
-  color: #d9d9df;
+  color: #201f23;
   white-space: nowrap;
 }
 
 .camera-topbar .rec-status {
-  color: #40e0d0;
-  text-shadow: 0 0 6px rgba(64, 224, 208, 0.5);
+  color: #00968b;
 }
 
 /* ---- the page ---- */
@@ -75,12 +74,12 @@
      hang under it, counted on both sides so the frame stays centred) */
   --cam-chrome: 250px;
 
-  --line: #36363c;
-  --line-hi: #4b4b53;
-  --txt: #ececf1;
-  --mute: #8f8f99;
-  --turq: #40e0d0;
-  --turq-soft: #bff7f1;
+  --line: #c4c8ce;
+  --line-hi: #9aa0a8;
+  --txt: #1f2328;
+  --mute: #5c636b;
+  --turq: #00a79b;
+  --turq-soft: #00665e;
 
   position: relative;
   width: 100%;
@@ -99,17 +98,18 @@
   padding: clamp(12px, 3vh, 36px) clamp(14px, 2.4vw, 34px);
   overflow: hidden;
 
-  background-color: #171717;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.13) 1.5px, transparent 1.5px);
-  background-size: 14px 14px;
+  background-color: #cfe9ee;
+  background-image: linear-gradient(rgba(232, 246, 250, 0.42), rgba(232, 246, 250, 0.42)), url("./assets/windowbg.png");
+  background-size: cover;
+  background-position: center;
   transition: background-color 0.3s ease;
   color: var(--txt);
 }
 
-.camera-page.vibe-pink  { background-color: #ff1493; }
-.camera-page.vibe-blue  { background-color: #3399ff; }
-.camera-page.vibe-white { background-color: #eeeeee; }
-.camera-page.vibe-black { background-color: #111111; }
+/* SKY (default) is the picture above; the others are plain colours */
+.camera-page.vibe-pink  { background-color: #ff4fa3; background-image: none; }
+.camera-page.vibe-white { background-color: #f5f5f5; background-image: none; }
+.camera-page.vibe-black { background-color: #272727; background-image: none; }
 
 /* ---- centre: the camera, with its buttons hanging underneath ---- */
 
@@ -187,7 +187,7 @@
   color: #05201d;
   box-shadow:
     inset 0 0 0 1px #1d8f85,
-    0 6px 18px rgba(64, 224, 208, 0.28);
+    0 6px 18px rgba(0, 190, 176, 0.28);
 
   font-family: monospace;
   font-size: 11px;
@@ -214,8 +214,8 @@
   border-radius: 4px;
   cursor: pointer;
 
-  background: #1f1f23;
-  color: #ececf1;
+  background: #ffffff;
+  color: #1f2328;
 
   font-family: monospace;
   font-size: 10px;
@@ -226,8 +226,8 @@
 }
 
 .retake-selected-button:hover {
-  background: #2a2a2f;
-  border-color: #40e0d0;
+  background: #e9fbf9;
+  border-color: #00a79b;
 }
 
 /* ---- the two side panels share one look ---- */
@@ -242,12 +242,13 @@
   flex-direction: column;
   overflow: hidden;
 
-  background: linear-gradient(180deg, #212125, #151517);
-  border: 1px solid var(--line-hi);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(222, 225, 230, 0.95));
+  border: 2px solid #8b9097;
   border-radius: 6px;
   box-shadow:
-    inset 0 1px rgba(255, 255, 255, 0.07),
-    0 12px 32px rgba(0, 0, 0, 0.45);
+    inset 0 1px rgba(255, 255, 255, 0.9),
+    4px 5px 0 rgba(60, 70, 80, 0.18),
+    0 14px 30px rgba(40, 70, 90, 0.18);
 }
 
 .panel-title {
@@ -258,7 +259,7 @@
   gap: 8px;
   padding: 11px 14px;
 
-  background: linear-gradient(#2d2d32, #232327);
+  background: linear-gradient(#ffffff, #d3d6db);
   border-bottom: 1px solid var(--line);
 
   font-family: monospace;
@@ -276,7 +277,7 @@
   border-radius: 50%;
   vertical-align: 1px;
   background: var(--turq);
-  box-shadow: 0 0 7px var(--turq);
+  box-shadow: 0 0 5px rgba(0, 200, 185, 0.7);
 }
 
 .history-count {
@@ -321,7 +322,7 @@
   height: 34px;
   padding: 0;
 
-  background: #1c1c20;
+  background: #eef0f3;
   color: var(--mute);
   border: 0;
   border-right: 1px solid var(--line);
@@ -337,12 +338,12 @@
 .timer-options button:last-child { border-right: 0; }
 
 .timer-options button:hover:not(:disabled):not(.selected) {
-  background: #2a2a2f;
+  background: #ffffff;
   color: var(--txt);
 }
 
 .timer-options button.selected {
-  background: rgba(64, 224, 208, 0.16);
+  background: rgba(0, 190, 176, 0.16);
   color: var(--turq-soft);
   box-shadow: inset 0 -2px var(--turq);
 }
@@ -375,14 +376,13 @@
   transition: border-color 0.12s ease, background 0.12s ease;
 }
 
-.vibe-swatch:hover { border-color: var(--line-hi); background: rgba(255, 255, 255, 0.04); }
+.vibe-swatch:hover { border-color: var(--line-hi); background: rgba(0, 167, 155, 0.08); }
 
 .vibe-dot {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.55);
-  box-shadow: inset 1px 1px 3px rgba(255, 255, 255, 0.35);
+  border: 2px solid rgba(0, 0, 0, 0.28);
 }
 
 .vibe-name {
@@ -394,13 +394,13 @@
 }
 
 .vibe-swatch.pink .vibe-dot  { background: #ff4fa3; }
-.vibe-swatch.blue .vibe-dot  { background: #4da6ff; }
+.vibe-swatch.sky .vibe-dot   { background: #bfe3ea; }
 .vibe-swatch.white .vibe-dot { background: #f5f5f5; }
 .vibe-swatch.black .vibe-dot { background: #151515; }
 
 .vibe-swatch.selected {
   border-color: var(--turq);
-  background: rgba(64, 224, 208, 0.09);
+  background: rgba(0, 190, 176, 0.09);
 }
 
 .vibe-swatch.selected .vibe-name { color: var(--turq-soft); }
@@ -410,7 +410,7 @@
   width: 100%;
   height: 40px;
 
-  background: rgba(64, 224, 208, 0.1);
+  background: rgba(0, 190, 176, 0.1);
   color: var(--turq-soft);
   border: 1px solid var(--turq);
   border-radius: 4px;
@@ -425,8 +425,8 @@
 }
 
 .playground-button:hover:not(:disabled) {
-  background: rgba(64, 224, 208, 0.2);
-  box-shadow: 0 0 14px rgba(64, 224, 208, 0.25);
+  background: rgba(0, 190, 176, 0.2);
+  box-shadow: 0 0 14px rgba(0, 190, 176, 0.25);
 }
 
 .playground-button:disabled {
@@ -451,7 +451,7 @@
   align-items: center;
   justify-content: space-between;
 
-  background: #1c1c20;
+  background: #eef0f3;
   color: var(--mute);
   border: 1px solid var(--line-hi);
   border-radius: 4px;
@@ -466,7 +466,7 @@
 .effect-toggle b {
   padding: 3px 8px;
   border-radius: 999px;
-  background: #2d2d32;
+  background: #ffffff;
   color: var(--txt);
   font-size: 9px;
   letter-spacing: 1px;
@@ -502,7 +502,7 @@
   aspect-ratio: 4 / 3;
   padding: 0;
 
-  background: #1b1b1e;
+  background: #e6e9ed;
   border: 1px solid var(--line);
   border-radius: 3px;
   overflow: hidden;
@@ -538,7 +538,7 @@
   font-family: monospace;
   font-size: 13px;
   font-weight: bold;
-  color: #4a4a52;
+  color: #8a9199;
 }
 
 .photo-count {
